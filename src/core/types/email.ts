@@ -1,0 +1,16 @@
+export interface EmailMessage {
+  from: string;
+  to: string | string[];
+  subject: string;
+  text?: string;
+  html?: string;
+
+  cc?: string[];
+  bcc?: string[];
+  replyTo?: string;
+}
+
+export interface SendResult {
+  id: string;
+  provider: string;
+}
