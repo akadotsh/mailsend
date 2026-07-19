@@ -6,6 +6,7 @@ import { parseArgs } from "node:util";
 import { EmailClient } from "@/core/providers/client";
 import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
 import { ResendProvider } from "@/core/providers/resend";
+import { SmtpProvider } from "@/core/providers/smtp";
 
 const VERSION = "0.0.0";
 
@@ -42,18 +43,33 @@ function getProvider(providerOption: string | undefined): SupportedProvider {
   return provider;
 }
 
-function getProviderApiKey(provider: SupportedProvider): string {
-  let apiKey: string | undefined;
+function getRequiredEnvironmentVariable(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is missing from .env`);
+  }
+  return value;
+}
+
+function createEmailClient(provider: SupportedProvider): EmailClient {
   switch (provider) {
     case "resend":
-      apiKey = process.env.RESEND_API_KEY;
-      break;
+      return new EmailClient(new ResendProvider(getRequiredEnvironmentVariable("RESEND_API_KEY")));
+    case "smtp":
+      return new EmailClient(
+        new SmtpProvider({
+          host: getRequiredEnvironmentVariable("SMTP_HOST"),
+          port: 587,
+          secure: false,
+          auth: {
+            user: getRequiredEnvironmentVariable("SMTP_USER"),
+            pass: getRequiredEnvironmentVariable("SMTP_PASS"),
+          },
+        }),
+      );
   }
 
-  if (!apiKey) {
-    throw new Error(`API key for ${provider} is missing from .env`);
-  }
-  return apiKey;
+  throw new Error("Unsupported provider");
 }
 
 async function main(): Promise<void> {
@@ -91,13 +107,7 @@ async function main(): Promise<void> {
       throw new Error("--from, --to, --subject, and --html are required to send an email");
     }
 
-    const apiKey = getProviderApiKey(provider);
-    let emailClient: EmailClient;
-    switch (provider) {
-      case "resend":
-        emailClient = new EmailClient(new ResendProvider(apiKey));
-        break;
-    }
+    const emailClient = createEmailClient(provider);
 
     const result = await emailClient.send({
       from: values.from,
