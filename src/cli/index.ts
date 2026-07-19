@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import { parseArgs } from "node:util";
-import { SUPPORTED_PROVIDERS, type SupportedProvider } from "../core/providers";
-import { EmailClient } from "../core/providers/client";
-import { ResendProvider } from "../core/providers/resend";
 import "dotenv/config";
+import { parseArgs } from "node:util";
+
+import { EmailClient } from "@/core/providers/client";
+import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
+import { ResendProvider } from "@/core/providers/resend";
 
 const VERSION = "0.0.0";
 

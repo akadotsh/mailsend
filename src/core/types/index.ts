@@ -1,1 +1,1 @@
-export type { EmailMessage, SendResult } from "./email";
+export type { EmailMessage, SendResult } from "@/core/types/email";

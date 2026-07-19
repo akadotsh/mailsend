@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { ResendProvider } from "./providers/resend";
-import { EmailClient } from "./providers/client";
+import { EmailClient } from "@/core/providers/client";
+import { ResendProvider } from "@/core/providers/resend";
 
 const apiKey = process.env.RESEND_API_KEY;
 

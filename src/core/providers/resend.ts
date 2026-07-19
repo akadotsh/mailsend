@@ -1,6 +1,7 @@
 import { Resend } from "resend";
-import type { EmailProvider } from ".";
-import type { EmailMessage, SendResult } from "../types/email";
+
+import type { EmailProvider } from "@/core/providers/index";
+import type { EmailMessage, SendResult } from "@/core/types/email";
 
 export class ResendProvider implements EmailProvider {
   readonly name = "resend";
