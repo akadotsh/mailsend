@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "import",
+    "node",
+    "promise",
+    "typescript",
+    "unicorn",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "rules": {
+    "curly": "error",
+    "eqeqeq": "error",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": ["dotenv/config"]
+      }
+    ],
+    "no-console": "off"
+  },
+  "env": {
+    "builtin": true
+  }
+}
