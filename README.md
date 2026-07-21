@@ -122,3 +122,7 @@ Run `duta --help` to view this reference in the terminal.
 
 For local development without installing the executable, use
 `pnpm cli -- <options>`.
+
+## License
+
+Duta is available under the [MIT License](LICENSE).

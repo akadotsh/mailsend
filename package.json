@@ -2,6 +2,7 @@
   "name": "duta",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "bin": {
     "duta": "dist/duta.js"
   },
