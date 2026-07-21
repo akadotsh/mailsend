@@ -2,7 +2,9 @@
   "name": "duta",
   "version": "0.0.0",
   "private": true,
+  "description": "A command-line tool for sending email through multiple providers.",
   "license": "MIT",
+  "author": "akadotsh",
   "bin": {
     "duta": "dist/duta.js"
   },
