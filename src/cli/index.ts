@@ -9,7 +9,9 @@ import { ResendProvider } from "@/core/providers/resend";
 import { SmtpProvider } from "@/core/providers/smtp";
 import { KeyStore } from "@/core/secrets/key-store";
 
-const VERSION = "0.0.0";
+import packageMetadata from "../../package.json" with { type: "json" };
+
+const VERSION = packageMetadata.version;
 const secretStore = new KeyStore("duta");
 
 const HELP_TEXT = `duta - send email from the command line

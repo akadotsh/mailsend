@@ -1,10 +1,23 @@
 {
   "name": "duta",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-beta.0",
   "description": "A command-line tool for sending email through multiple providers.",
+  "keywords": [
+    "cli",
+    "email",
+    "resend",
+    "smtp"
+  ],
+  "homepage": "https://github.com/akadotsh/duta#readme",
+  "bugs": {
+    "url": "https://github.com/akadotsh/duta/issues"
+  },
   "license": "MIT",
   "author": "akadotsh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akadotsh/duta.git"
+  },
   "bin": {
     "duta": "dist/duta.js"
   },
@@ -12,11 +25,16 @@
     "dist"
   ],
   "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "dev": "tsx watch src/core/index.ts",
     "start": "tsx src/core/index.ts",
     "build": "pnpm typecheck && esbuild src/cli/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/duta.js",
+    "prepack": "pnpm build",
     "typecheck": "tsc",
     "lint": "oxlint --type-aware --deny-warnings --report-unused-disable-directives src",
     "lint:fix": "oxlint --type-aware --deny-warnings --report-unused-disable-directives --fix src",
@@ -38,6 +56,9 @@
     "oxlint-tsgolint": "^0.25.0",
     "tsx": "^4.23.1",
     "typescript": "~6.0.3"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

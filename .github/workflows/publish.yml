@@ -1,28 +1,35 @@
 name: Publish to npm
-'on':
+
+on:
   release:
-    types:
-      - published
+    types: [published]
+
 permissions:
   contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
       - name: Enable pnpm
         run: corepack enable
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: https://registry.npmjs.org
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Verify release version
         env:
-          RELEASE_TAG: '${{ github.event.release.tag_name }}'
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           PACKAGE_VERSION="$(node --print "require('./package.json').version")"
           EXPECTED_TAG="v${PACKAGE_VERSION}"
@@ -31,13 +38,17 @@ jobs:
             echo "Release tag $RELEASE_TAG does not match package version $EXPECTED_TAG"
             exit 1
           fi
+
       - name: Build
         run: pnpm build
+
       - name: Lint
         run: pnpm lint
+
       - name: Check formatting
-        run: 'pnpm format:check'
+        run: pnpm format:check
+
       - name: Publish to npm
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
