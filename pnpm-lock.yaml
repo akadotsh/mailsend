@@ -27,6 +27,9 @@ importers:
       '@types/nodemailer':
         specifier: ^8.0.1
         version: 8.0.1
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
       oxfmt:
         specifier: ^0.59.0
         version: 0.59.0
