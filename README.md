@@ -5,18 +5,14 @@ Duta is a command-line tool for sending HTML email through a supported email pro
 ## Requirements
 
 - Node.js 20 or later
-- pnpm
 
-Install the dependencies, build Duta, and install its executable globally:
+Install Duta globally from npm:
 
 ```sh
-pnpm install
-pnpm build
-npm install --global .
+npm install --global duta@beta
 ```
 
-You can now run `duta` from any directory. Rebuild and repeat the global install
-after making source changes.
+You can now run `duta` from any directory.
 
 ## Supported providers
 
@@ -120,8 +116,27 @@ Options:
 
 Run `duta --help` to view this reference in the terminal.
 
-For local development without installing the executable, use
-`pnpm cli -- <options>`.
+## Development
+
+Clone the repository and install its development dependencies with pnpm:
+
+```sh
+pnpm install
+```
+
+Run the CLI directly from its TypeScript source:
+
+```sh
+pnpm cli -- <options>
+```
+
+Build the executable package and run all checks:
+
+```sh
+pnpm build
+pnpm lint
+pnpm format:check
+```
 
 ## License
 
