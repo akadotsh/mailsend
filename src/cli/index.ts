@@ -7,8 +7,10 @@ import { EmailClient } from "@/core/providers/client";
 import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
 import { ResendProvider } from "@/core/providers/resend";
 import { SmtpProvider } from "@/core/providers/smtp";
+import { KeyStore } from "@/core/secrets/key-store";
 
 const VERSION = "0.0.0";
+const secretStore = new KeyStore("duta");
 
 const HELP_TEXT = `duta - send email from the command line
 
@@ -20,6 +22,8 @@ Options:
   -v, --version         Show the current version
       --list-providers  List the available email providers
   -p, --provider        Select an email provider
+  -c, --config          Save provider credentials in the system keychain
+      --api-key         API key to save with --config
       --send-email      Send an email using the selected provider
       --from            Sender address
       --to              Recipient address (repeat for multiple recipients)
@@ -51,10 +55,39 @@ function getRequiredEnvironmentVariable(name: string): string {
   return value;
 }
 
-function createEmailClient(provider: SupportedProvider): EmailClient {
+function getProviderApiKeyName(provider: SupportedProvider): string {
+  return `${provider}:api-key`;
+}
+
+async function configureProvider(
+  provider: SupportedProvider,
+  apiKey: string | undefined,
+): Promise<void> {
+  if (provider !== "resend") {
+    throw new Error(`${provider} does not use an API key`);
+  }
+  if (!apiKey) {
+    throw new Error("--api-key is required with --config");
+  }
+
+  await secretStore.set(getProviderApiKeyName(provider), apiKey);
+}
+
+async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
+  const storedApiKey = await secretStore.get(getProviderApiKeyName(provider));
+  if (storedApiKey) {
+    return storedApiKey;
+  }
+
+  throw new Error(
+    `No API key configured for ${provider}. Run duta --config -p ${provider} --api-key <key>`,
+  );
+}
+
+async function createEmailClient(provider: SupportedProvider): Promise<EmailClient> {
   switch (provider) {
     case "resend":
-      return new EmailClient(new ResendProvider(getRequiredEnvironmentVariable("RESEND_API_KEY")));
+      return new EmailClient(new ResendProvider(await getProviderApiKey(provider)));
     case "smtp":
       return new EmailClient(
         new SmtpProvider({
@@ -80,6 +113,8 @@ async function main(): Promise<void> {
       version: { type: "boolean", short: "v" },
       "list-providers": { type: "boolean" },
       provider: { type: "string", short: "p" },
+      config: { type: "boolean", short: "c" },
+      "api-key": { type: "string" },
       "send-email": { type: "boolean" },
       from: { type: "string" },
       to: { type: "string", multiple: true },
@@ -100,6 +135,13 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (values.config) {
+    const provider = getProvider(values.provider);
+    await configureProvider(provider, values["api-key"]);
+    console.log(`Configured ${provider} credentials in the system keychain`);
+    return;
+  }
+
   if (values["send-email"]) {
     const provider = getProvider(values.provider);
 
@@ -107,7 +149,7 @@ async function main(): Promise<void> {
       throw new Error("--from, --to, --subject, and --html are required to send an email");
     }
 
-    const emailClient = createEmailClient(provider);
+    const emailClient = await createEmailClient(provider);
 
     const result = await emailClient.send({
       from: values.from,
