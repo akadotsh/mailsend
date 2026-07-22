@@ -9,7 +9,7 @@ Duta is a command-line tool for sending HTML email through a supported email pro
 Install Duta globally from npm:
 
 ```sh
-npm install --global duta@beta
+npm install --global @akadotsh/duta@beta
 ```
 
 You can now run `duta` from any directory.
