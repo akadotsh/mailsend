@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 
 import { EmailClient } from "@/core/providers/client";
 import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
+import { MailerSendProvider } from "@/core/providers/mailersend";
 import { ResendProvider } from "@/core/providers/resend";
 import { SmtpProvider } from "@/core/providers/smtp";
 import { KeyStore } from "@/core/secrets/key-store";
@@ -65,7 +66,7 @@ async function configureProvider(
   provider: SupportedProvider,
   apiKey: string | undefined,
 ): Promise<void> {
-  if (provider !== "resend") {
+  if (provider === "smtp") {
     throw new Error(`${provider} does not use an API key`);
   }
   if (!apiKey) {
@@ -88,6 +89,8 @@ async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
 
 async function createEmailClient(provider: SupportedProvider): Promise<EmailClient> {
   switch (provider) {
+    case "mailersend":
+      return new EmailClient(new MailerSendProvider(await getProviderApiKey(provider)));
     case "resend":
       return new EmailClient(new ResendProvider(await getProviderApiKey(provider)));
     case "smtp":

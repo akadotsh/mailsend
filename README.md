@@ -16,10 +16,11 @@ You can now run `duta` from any directory.
 
 ## Supported providers
 
-| Provider | Credentials                                                     | Notes                                                                    |
-| -------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `resend` | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
-| `smtp`   | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
+| Provider     | Credentials                                                     | Notes                                                                    |
+| ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `mailersend` | API key stored in the system keychain                           | The sender must use a domain verified in the user's MailerSend account.  |
+| `resend`     | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
+| `smtp`       | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
 
 List the providers supported by the installed version:
 
@@ -28,6 +29,17 @@ duta --list-providers
 ```
 
 ## Configure a provider
+
+### MailerSend
+
+Save a MailerSend API token with Email permission in the operating system's keychain:
+
+```sh
+duta --config --provider mailersend --api-key mlsn_your_api_token
+```
+
+The sender passed to `--from` must use a domain verified in the MailerSend account.
+The domain is supplied by the user when sending and is not stored by Duta.
 
 ### Resend
 
@@ -56,6 +68,18 @@ SMTP does not use the `--config` or `--api-key` options.
 ## Send an email
 
 All of `--provider`, `--from`, `--to`, `--subject`, and `--html` are required.
+
+Using MailerSend:
+
+```sh
+duta \
+  --send-email \
+  --provider mailersend \
+  --from "Acme <sender@example.com>" \
+  --to recipient@example.com \
+  --subject "Hello from Duta" \
+  --html "<h1>Hello!</h1><p>This email was sent with MailerSend.</p>"
+```
 
 Using Resend:
 
