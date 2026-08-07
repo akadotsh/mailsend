@@ -1,6 +1,6 @@
 {
-  "name": "@akadotsh/duta",
-  "version": "0.1.0-beta.2",
+  "name": "@akadotsh/mailsend",
+  "version": "0.1.0-beta.1",
   "description": "A command-line tool for sending email through multiple providers.",
   "keywords": [
     "cli",
@@ -9,18 +9,18 @@
     "resend",
     "smtp"
   ],
-  "homepage": "https://github.com/akadotsh/duta#readme",
+  "homepage": "https://github.com/akadotsh/mailsend#readme",
   "bugs": {
-    "url": "https://github.com/akadotsh/duta/issues"
+    "url": "https://github.com/akadotsh/mailsend/issues"
   },
   "license": "MIT",
   "author": "akadotsh",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akadotsh/duta.git"
+    "url": "git+https://github.com/akadotsh/mailsend.git"
   },
   "bin": {
-    "duta": "dist/duta.js"
+    "mailsend": "dist/mailsend.js"
   },
   "files": [
     "dist"
@@ -34,7 +34,7 @@
     "cli": "tsx src/cli/index.ts",
     "dev": "tsx watch src/core/index.ts",
     "start": "tsx src/core/index.ts",
-    "build": "pnpm typecheck && esbuild src/cli/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/duta.js",
+    "build": "pnpm typecheck && esbuild src/cli/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/mailsend.js",
     "prepack": "pnpm build",
     "typecheck": "tsc",
     "lint": "oxlint --type-aware --deny-warnings --report-unused-disable-directives src",

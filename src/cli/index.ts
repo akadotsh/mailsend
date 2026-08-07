@@ -13,12 +13,12 @@ import { KeyStore } from "@/core/secrets/key-store";
 import packageMetadata from "../../package.json" with { type: "json" };
 
 const VERSION = packageMetadata.version;
-const secretStore = new KeyStore("duta");
+const secretStore = new KeyStore("mailsend");
 
-const HELP_TEXT = `duta - send email from the command line
+const HELP_TEXT = `mailsend - send email from the command line
 
 Usage:
-  duta [options]
+  mailsend [options]
 
 Options:
   -h, --help            Show this help message
@@ -83,7 +83,7 @@ async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
   }
 
   throw new Error(
-    `No API key configured for ${provider}. Run duta --config -p ${provider} --api-key <key>`,
+    `No API key configured for ${provider}. Run mailsend --config -p ${provider} --api-key <key>`,
   );
 }
 

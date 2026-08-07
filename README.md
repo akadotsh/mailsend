@@ -1,18 +1,18 @@
-# Duta
+# MailSend
 
-Duta is a command-line tool for sending HTML email through a supported email provider.
+MailSend is a command-line tool for sending HTML email through a supported email provider.
 
 ## Requirements
 
 - Node.js 20 or later
 
-Install Duta globally from npm:
+Install MailSend globally from npm:
 
 ```sh
-npm install --global @akadotsh/duta@beta
+npm install --global @akadotsh/mailsend@beta
 ```
 
-You can now run `duta` from any directory.
+You can now run `mailsend` from any directory.
 
 ## Supported providers
 
@@ -25,7 +25,7 @@ You can now run `duta` from any directory.
 List the providers supported by the installed version:
 
 ```sh
-duta --list-providers
+mailsend --list-providers
 ```
 
 ## Configure a provider
@@ -35,18 +35,18 @@ duta --list-providers
 Save a MailerSend API token with Email permission in the operating system's keychain:
 
 ```sh
-duta --config --provider mailersend --api-key mlsn_your_api_token
+mailsend --config --provider mailersend --api-key mlsn_your_api_token
 ```
 
 The sender passed to `--from` must use a domain verified in the MailerSend account.
-The domain is supplied by the user when sending and is not stored by Duta.
+The domain is supplied by the user when sending and is not stored by MailSend.
 
 ### Resend
 
 Save a Resend API key in the operating system's keychain:
 
 ```sh
-duta --config --provider resend --api-key re_your_api_key
+mailsend --config --provider resend --api-key re_your_api_key
 ```
 
 The API key is retrieved from the keychain whenever an email is sent. If it has not
@@ -72,43 +72,43 @@ All of `--provider`, `--from`, `--to`, `--subject`, and `--html` are required.
 Using MailerSend:
 
 ```sh
-duta \
+mailsend \
   --send-email \
   --provider mailersend \
   --from "Acme <sender@example.com>" \
   --to recipient@example.com \
-  --subject "Hello from Duta" \
+  --subject "Hello from MailSend" \
   --html "<h1>Hello!</h1><p>This email was sent with MailerSend.</p>"
 ```
 
 Using Resend:
 
 ```sh
-duta \
+mailsend \
   --send-email \
   --provider resend \
   --from sender@example.com \
   --to recipient@example.com \
-  --subject "Hello from Duta" \
-  --html "<h1>Hello!</h1><p>This email was sent with Duta.</p>"
+  --subject "Hello from MailSend" \
+  --html "<h1>Hello!</h1><p>This email was sent with MailSend.</p>"
 ```
 
 Using SMTP:
 
 ```sh
-duta \
+mailsend \
   --send-email \
   --provider smtp \
   --from sender@example.com \
   --to recipient@example.com \
-  --subject "Hello from Duta" \
+  --subject "Hello from MailSend" \
   --html "<p>This email was sent over SMTP.</p>"
 ```
 
 Repeat `--to` to send to multiple recipients:
 
 ```sh
-duta \
+mailsend \
   --send-email \
   --provider resend \
   --from sender@example.com \
@@ -122,7 +122,7 @@ duta \
 
 ```text
 Usage:
-  duta [options]
+  mailsend [options]
 
 Options:
   -h, --help            Show the help message
@@ -138,7 +138,7 @@ Options:
       --html            Email HTML body
 ```
 
-Run `duta --help` to view this reference in the terminal.
+Run `mailsend --help` to view this reference in the terminal.
 
 ## Development
 
@@ -164,4 +164,4 @@ pnpm format:check
 
 ## License
 
-Duta is available under the [MIT License](LICENSE).
+MailSend is available under the [MIT License](LICENSE).
