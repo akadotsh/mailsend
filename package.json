@@ -4,6 +4,7 @@
   "description": "A command-line tool for sending email through multiple providers.",
   "keywords": [
     "cli",
+    "cloudflare",
     "email",
     "mailersend",
     "resend",

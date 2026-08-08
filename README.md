@@ -18,6 +18,7 @@ You can now run `mailsend` from any directory.
 
 | Provider     | Credentials                                                     | Notes                                                                    |
 | ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `cloudflare` | API token stored in the system keychain                         | Requires an onboarded domain and an API token with Email Sending: Edit.  |
 | `mailersend` | API key stored in the system keychain                           | The sender must use a domain verified in the user's MailerSend account.  |
 | `resend`     | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
 | `smtp`       | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
@@ -29,6 +30,18 @@ mailsend --list-providers
 ```
 
 ## Configure a provider
+
+### Cloudflare Email Service
+
+Onboard the sender domain in Cloudflare Email Sending, then save an API token with
+the **Email Sending: Edit** permission:
+
+```sh
+mailsend --config --provider cloudflare --api-key your_cloudflare_api_token
+```
+
+MailSend connects to Cloudflare's SMTP endpoint using implicit TLS. The `--from`
+address must use a domain onboarded in the Cloudflare account that owns the token.
 
 ### MailerSend
 
@@ -68,6 +81,18 @@ SMTP does not use the `--config` or `--api-key` options.
 ## Send an email
 
 All of `--provider`, `--from`, `--to`, `--subject`, and `--html` are required.
+
+Using Cloudflare Email Service:
+
+```sh
+mailsend \
+  --send-email \
+  --provider cloudflare \
+  --from welcome@example.com \
+  --to recipient@example.com \
+  --subject "Hello from MailSend" \
+  --html "<h1>Hello!</h1><p>This email was sent with Cloudflare.</p>"
+```
 
 Using MailerSend:
 
