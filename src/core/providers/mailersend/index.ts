@@ -53,6 +53,14 @@ export class MailerSendProvider implements EmailProvider {
         ...(message.cc?.length ? { cc: parseAddresses(message.cc) } : {}),
         ...(message.bcc?.length ? { bcc: parseAddresses(message.bcc) } : {}),
         ...(message.replyTo ? { reply_to: parseAddress(message.replyTo) } : {}),
+        ...(message.attachments?.length
+          ? {
+              attachments: message.attachments.map((attachment) => ({
+                filename: attachment.filename,
+                content: attachment.content.toString("base64"),
+              })),
+            }
+          : {}),
       }),
     });
 

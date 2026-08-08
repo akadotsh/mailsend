@@ -68,6 +68,7 @@ SMTP does not use the `--config` or `--api-key` options.
 ## Send an email
 
 All of `--provider`, `--from`, `--to`, `--subject`, and `--html` are required.
+Use `--attachment <path>` to include a file; repeat the option to include multiple files.
 
 Using MailerSend:
 
@@ -78,7 +79,8 @@ mailsend \
   --from "Acme <sender@example.com>" \
   --to recipient@example.com \
   --subject "Hello from MailSend" \
-  --html "<h1>Hello!</h1><p>This email was sent with MailerSend.</p>"
+  --html "<h1>Hello!</h1><p>This email was sent with MailerSend.</p>" \
+  --attachment ./test.pdf
 ```
 
 Using Resend:
@@ -136,6 +138,7 @@ Options:
       --to              Recipient address (repeat for multiple recipients)
       --subject         Email subject
       --html            Email HTML body
+      --attachment      File to attach (repeat for multiple attachments)
 ```
 
 Run `mailsend --help` to view this reference in the terminal.
