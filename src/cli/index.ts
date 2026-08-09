@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import "dotenv/config";
+import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
 import { EmailClient } from "@/core/providers/client";
@@ -33,6 +35,7 @@ Options:
       --to              Recipient address (repeat for multiple recipients)
       --subject         Email subject
       --html            Email HTML body
+      --attachment      File to attach (repeat for multiple attachments)
 `;
 
 function isSupportedProvider(provider: string): provider is SupportedProvider {
@@ -102,6 +105,7 @@ async function createEmailClient(provider: SupportedProvider): Promise<EmailClie
           host: getRequiredEnvironmentVariable("SMTP_HOST"),
           port: 587,
           secure: false,
+          requireTLS: true,
           auth: {
             user: getRequiredEnvironmentVariable("SMTP_USER"),
             pass: getRequiredEnvironmentVariable("SMTP_PASS"),
@@ -128,6 +132,7 @@ async function main(): Promise<void> {
       to: { type: "string", multiple: true },
       subject: { type: "string" },
       html: { type: "string" },
+      attachment: { type: "string", multiple: true },
     },
     allowPositionals: true,
     strict: true,
@@ -158,12 +163,19 @@ async function main(): Promise<void> {
     }
 
     const emailClient = await createEmailClient(provider);
+    const attachments = await Promise.all(
+      (values.attachment ?? []).map(async (path) => ({
+        filename: basename(path),
+        content: await readFile(path),
+      })),
+    );
 
     const result = await emailClient.send({
       from: values.from,
       to: values.to,
       subject: values.subject,
       html: values.html,
+      ...(attachments.length ? { attachments } : {}),
     });
     console.log(`Email sent with ${result.provider}: ${result.id}`);
     return;
