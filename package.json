@@ -3,6 +3,7 @@
   "version": "0.1.0-beta.1",
   "description": "A command-line tool for sending email through multiple providers.",
   "keywords": [
+    "Cloudflare Email",
     "cli",
     "email",
     "mailersend",
