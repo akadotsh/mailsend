@@ -16,12 +16,12 @@ You can now run `mailsend` from any directory.
 
 ## Supported providers
 
-| Provider     | Credentials                                                     | Notes                                                                    |
-| ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `cloudflare` | API token stored in the system keychain                         | Requires an onboarded domain and an API token with Email Sending: Edit.  |
-| `mailersend` | API key stored in the system keychain                           | The sender must use a domain verified in the user's MailerSend account.  |
-| `resend`     | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
-| `smtp`       | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
+| Provider         | Credentials                                                     | Notes                                                                    |
+| ---------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Cloudflare Email | API token stored in the system keychain                         | Requires an onboarded domain and an API token with Email Sending: Edit.  |
+| `mailersend`     | API key stored in the system keychain                           | The sender must use a domain verified in the user's MailerSend account.  |
+| `resend`         | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
+| `smtp`           | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
 
 List the providers supported by the installed version:
 
