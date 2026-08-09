@@ -35,6 +35,7 @@
     "cli": "tsx src/cli/index.ts",
     "dev": "tsx watch src/core/index.ts",
     "start": "tsx src/core/index.ts",
+    "test": "tsx --test src/core/bulk.test.ts",
     "build": "pnpm typecheck && esbuild src/cli/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/mailsend.js",
     "prepack": "pnpm build",
     "typecheck": "tsc",

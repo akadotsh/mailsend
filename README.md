@@ -145,6 +145,37 @@ mailsend \
   --html "<p>Hello!</p>"
 ```
 
+## Send bulk email
+
+Bulk sending delivers a separate, private message to each row in a CSV file. The CSV must have an
+`email` column and may contain additional columns for template fields:
+
+```csv
+email,name
+alice@example.com,Alice
+bob@example.com,Bob
+```
+
+Validate the list and options without sending anything:
+
+```sh
+mailsend \
+  --send-bulk \
+  --provider resend \
+  --from "Acme <news@example.com>" \
+  --recipients ./recipients.csv \
+  --subject "Hello {{name}}" \
+  --html "<p>Hi {{name}}, welcome!</p>" \
+  --dry-run
+```
+
+Remove `--dry-run` to send. Bulk sends default to two emails per second; use `--rate` to select a
+positive rate up to 10. Use `--report ./bulk-report.json` to save per-recipient results.
+
+Only send bulk email to recipients who explicitly opted in. Configure SPF, DKIM, and DMARC for the
+sending domain, include the unsubscribe mechanism required for your type of email, and suppress
+unsubscribed, bounced, and complaining recipients before preparing the CSV.
+
 ## CLI reference
 
 ```text
@@ -159,6 +190,11 @@ Options:
   -c, --config          Save provider credentials in the system keychain
       --api-key         API key to save with --config
       --send-email      Send an email using the selected provider
+      --send-bulk       Send one private email per row in a recipients CSV
+      --recipients      CSV file with an email column (required with --send-bulk)
+      --rate            Maximum emails per second for bulk sends (default: 2, max: 10)
+      --dry-run         Validate and preview a bulk send without sending
+      --report          Write the bulk-send result as JSON
       --from            Sender address
       --to              Recipient address (repeat for multiple recipients)
       --subject         Email subject

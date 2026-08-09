@@ -15,6 +15,7 @@ export class CloudflareProvider extends SmtpProvider implements EmailProvider {
       host: CLOUDFLARE_SMTP_HOST,
       port: 465,
       secure: true,
+      requireTLS: false,
       auth: {
         user: "api_token",
         pass: apiToken,
