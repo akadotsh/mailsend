@@ -102,6 +102,7 @@ async function createEmailClient(provider: SupportedProvider): Promise<EmailClie
           host: getRequiredEnvironmentVariable("SMTP_HOST"),
           port: 587,
           secure: false,
+          requireTLS: true,
           auth: {
             user: getRequiredEnvironmentVariable("SMTP_USER"),
             pass: getRequiredEnvironmentVariable("SMTP_PASS"),
