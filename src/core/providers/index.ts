@@ -1,6 +1,6 @@
 import type { EmailMessage, SendResult } from "@/core/types/email";
 
-export const SUPPORTED_PROVIDERS = ["mailersend", "resend", "smtp"] as const;
+export const SUPPORTED_PROVIDERS = ["cloudflare", "mailersend", "resend", "smtp"] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
 export interface EmailProvider {

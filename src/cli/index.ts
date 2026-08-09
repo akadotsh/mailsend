@@ -6,6 +6,7 @@ import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
 import { EmailClient } from "@/core/providers/client";
+import { CloudflareProvider } from "@/core/providers/cloudflare";
 import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
 import { MailerSendProvider } from "@/core/providers/mailersend";
 import { ResendProvider } from "@/core/providers/resend";
@@ -92,6 +93,8 @@ async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
 
 async function createEmailClient(provider: SupportedProvider): Promise<EmailClient> {
   switch (provider) {
+    case "cloudflare":
+      return new EmailClient(new CloudflareProvider(await getProviderApiKey(provider)));
     case "mailersend":
       return new EmailClient(new MailerSendProvider(await getProviderApiKey(provider)));
     case "resend":
