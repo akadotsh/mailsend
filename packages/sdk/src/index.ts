@@ -1,3 +1,5 @@
+export { parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "./bulk.js";
+export type { BulkRecipient, BulkSendEntry, BulkSendReport, BulkSender } from "./bulk.js";
 export { EmailClient } from "./client.js";
 export { SUPPORTED_PROVIDERS } from "./provider.js";
 export type { EmailProvider, SupportedProvider } from "./provider.js";

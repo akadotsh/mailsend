@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import "dotenv/config";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -9,7 +9,9 @@ import {
   CloudflareProvider,
   EmailClient,
   MailerSendProvider,
+  parseBulkRecipients,
   ResendProvider,
+  sendBulkEmails,
   SmtpProvider,
   SUPPORTED_PROVIDERS,
   type SupportedProvider,
@@ -34,6 +36,11 @@ Options:
   -c, --config          Save provider credentials in the system keychain
       --api-key         API key to save with --config
       --send-email      Send an email using the selected provider
+      --send-bulk       Send one private email per row in a recipients CSV
+      --recipients      CSV file with an email column (required with --send-bulk)
+      --rate            Maximum emails per second for bulk sends (default: 2, max: 10)
+      --dry-run         Validate and preview a bulk send without sending
+      --report          Write the bulk-send result as JSON
       --from            Sender address
       --to              Recipient address (repeat for multiple recipients)
       --subject         Email subject
@@ -120,6 +127,14 @@ async function createEmailClient(provider: SupportedProvider): Promise<EmailClie
   throw new Error("Unsupported provider");
 }
 
+function getBulkRate(rateOption: string | undefined): number {
+  const rate = rateOption === undefined ? 2 : Number(rateOption);
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 10) {
+    throw new Error("--rate must be a number greater than 0 and no more than 10");
+  }
+  return rate;
+}
+
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
@@ -131,6 +146,11 @@ async function main(): Promise<void> {
       config: { type: "boolean", short: "c" },
       "api-key": { type: "string" },
       "send-email": { type: "boolean" },
+      "send-bulk": { type: "boolean" },
+      recipients: { type: "string" },
+      rate: { type: "string" },
+      "dry-run": { type: "boolean" },
+      report: { type: "string" },
       from: { type: "string" },
       to: { type: "string", multiple: true },
       subject: { type: "string" },
@@ -140,6 +160,10 @@ async function main(): Promise<void> {
     allowPositionals: true,
     strict: true,
   });
+
+  if (values["send-email"] && values["send-bulk"]) {
+    throw new Error("--send-email and --send-bulk cannot be used together");
+  }
 
   if (values.version) {
     console.log(VERSION);
@@ -181,6 +205,59 @@ async function main(): Promise<void> {
       ...(attachments.length ? { attachments } : {}),
     });
     console.log(`Email sent with ${result.provider}: ${result.id}`);
+    return;
+  }
+
+  if (values["send-bulk"]) {
+    const provider = getProvider(values.provider);
+    if (!values.from || !values.subject || !values.html || !values.recipients) {
+      throw new Error(
+        "--from, --subject, --html, and --recipients are required to send bulk email",
+      );
+    }
+    if (values.to?.length) {
+      throw new Error("--to cannot be combined with --send-bulk; use the recipients CSV");
+    }
+    if (values.attachment?.length) {
+      throw new Error("--attachment is not currently supported with --send-bulk");
+    }
+
+    const recipients = parseBulkRecipients(await readFile(values.recipients, "utf8"));
+    const ratePerSecond = getBulkRate(values.rate);
+
+    if (values["dry-run"]) {
+      console.log(
+        `Dry run passed: ${recipients.length} unique recipients, provider ${provider}, rate ${ratePerSecond}/second`,
+      );
+      return;
+    }
+
+    const emailClient = await createEmailClient(provider);
+    console.log(`Sending ${recipients.length} private emails at up to ${ratePerSecond}/second...`);
+    const report = await sendBulkEmails({
+      sender: emailClient,
+      recipients,
+      from: values.from,
+      subject: values.subject,
+      html: values.html,
+      ratePerSecond,
+    });
+
+    if (values.report) {
+      await writeFile(
+        values.report,
+        `${JSON.stringify({ generatedAt: new Date().toISOString(), provider, ...report }, null, 2)}\n`,
+        "utf8",
+      );
+    }
+
+    console.log(`Bulk send complete: ${report.sent} sent, ${report.failed} failed`);
+    for (const failure of report.entries.filter((entry) => entry.status === "failed")) {
+      console.error(`Failed ${failure.email}: ${failure.error}`);
+    }
+    if (report.failed > 0) {
+      process.exitCode = 1;
+    }
     return;
   }
 
