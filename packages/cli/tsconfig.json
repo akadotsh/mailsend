@@ -3,7 +3,8 @@
   "compilerOptions": {
     "noEmit": true,
     "paths": {
-      "@akadotsh/mailsend-sdk": ["../sdk/src/index.ts"]
+      "@/*": ["./src/*"],
+      "@/package.json": ["./package.json"]
     }
   },
   "include": ["src"]

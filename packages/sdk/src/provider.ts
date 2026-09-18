@@ -1,4 +1,4 @@
-import type { EmailMessage, SendResult } from "./types.js";
+import type { EmailMessage, SendResult } from "@/types";
 
 export const SUPPORTED_PROVIDERS = ["cloudflare", "mailersend", "resend", "smtp"] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];

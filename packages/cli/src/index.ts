@@ -17,8 +17,8 @@ import {
   type SupportedProvider,
 } from "@akadotsh/mailsend-sdk";
 
-import packageMetadata from "../package.json" with { type: "json" };
-import { KeyStore } from "./key-store.js";
+import { KeyStore } from "@/key-store";
+import packageMetadata from "@/package.json" with { type: "json" };
 
 const VERSION = packageMetadata.version;
 const secretStore = new KeyStore("mailsend");

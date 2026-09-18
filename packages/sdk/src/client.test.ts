@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EmailClient } from "./client.js";
-import type { EmailProvider } from "./provider.js";
-import type { EmailMessage } from "./types.js";
+import { EmailClient } from "@/client";
+import type { EmailProvider } from "@/provider";
+import type { EmailMessage } from "@/types";
 
 void test("delegates a message to the configured provider", async () => {
   const messages: EmailMessage[] = [];

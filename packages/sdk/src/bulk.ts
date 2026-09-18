@@ -1,4 +1,4 @@
-import type { EmailMessage, SendResult } from "./types.js";
+import type { EmailMessage, SendResult } from "@/types";
 
 export interface BulkRecipient {
   email: string;

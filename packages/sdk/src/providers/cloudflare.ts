@@ -1,5 +1,5 @@
-import type { EmailProvider } from "../provider.js";
-import { SmtpProvider } from "./smtp.js";
+import type { EmailProvider } from "@/provider";
+import { SmtpProvider } from "@/providers/smtp";
 
 const CLOUDFLARE_SMTP_HOST = "smtp.mx.cloudflare.net";
 

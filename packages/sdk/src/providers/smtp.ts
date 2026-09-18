@@ -1,7 +1,7 @@
 import Nodemailer, { type Transporter } from "nodemailer";
 
-import type { EmailProvider } from "../provider.js";
-import type { EmailMessage, SendResult, SmtpConfig } from "../types.js";
+import type { EmailProvider } from "@/provider";
+import type { EmailMessage, SendResult, SmtpConfig } from "@/types";
 
 export class SmtpProvider implements EmailProvider {
   private readonly transporter: Transporter;

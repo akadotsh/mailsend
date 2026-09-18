@@ -1,5 +1,5 @@
-import type { EmailProvider } from "../provider.js";
-import type { EmailMessage, SendResult } from "../types.js";
+import type { EmailProvider } from "@/provider";
+import type { EmailMessage, SendResult } from "@/types";
 
 interface MailerSendAddress {
   email: string;
