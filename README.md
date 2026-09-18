@@ -2,6 +2,9 @@
 
 MailSend is a command-line tool for sending HTML email through a supported email provider.
 
+The repository also contains `@akadotsh/mailsend-sdk`, a provider-neutral TypeScript library
+used by the CLI and available for applications that need the same email integrations.
+
 ## Requirements
 
 - Node.js 20 or later
@@ -13,6 +16,33 @@ npm install --global @akadotsh/mailsend@beta
 ```
 
 You can now run `mailsend` from any directory.
+
+## TypeScript SDK
+
+Install the prerelease SDK:
+
+```sh
+npm install @akadotsh/mailsend-sdk@beta
+```
+
+Create a provider and pass it to the shared client:
+
+```ts
+import { EmailClient, ResendProvider } from "@akadotsh/mailsend-sdk";
+
+const email = new EmailClient(new ResendProvider(process.env.RESEND_API_KEY!));
+
+await email.send({
+  from: "Acme <hello@example.com>",
+  to: "user@example.com",
+  subject: "Welcome",
+  html: "<h1>Hello!</h1>",
+});
+```
+
+The SDK exports adapters for Cloudflare Email, MailerSend, Resend, and SMTP, as well as the
+`EmailProvider` interface for custom integrations. Credential storage and environment loading are
+CLI concerns and are not performed by the SDK.
 
 ## Supported providers
 
@@ -181,6 +211,9 @@ Run the CLI directly from its TypeScript source:
 ```sh
 pnpm cli -- <options>
 ```
+
+The repository is a pnpm workspace. The independently publishable packages live in
+`packages/sdk` and `packages/cli`.
 
 Build the executable package and run all checks:
 
