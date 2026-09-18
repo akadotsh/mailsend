@@ -1,0 +1,53 @@
+{
+  "name": "@akadotsh/mailsend-sdk",
+  "version": "0.1.0-beta.1",
+  "description": "A provider-neutral TypeScript SDK for sending email.",
+  "keywords": [
+    "email",
+    "mailersend",
+    "resend",
+    "sdk",
+    "smtp",
+    "typescript"
+  ],
+  "homepage": "https://github.com/akadotsh/mailsend#readme",
+  "bugs": {
+    "url": "https://github.com/akadotsh/mailsend/issues"
+  },
+  "license": "MIT",
+  "author": "akadotsh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akadotsh/mailsend.git",
+    "directory": "packages/sdk"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
+  "scripts": {
+    "build": "pnpm typecheck && tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js",
+    "prepack": "pnpm build",
+    "test": "tsx --test src/**/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.3",
+    "resend": "^6.17.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

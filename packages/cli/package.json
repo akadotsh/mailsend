@@ -1,0 +1,50 @@
+{
+  "name": "@akadotsh/mailsend",
+  "version": "0.1.0-beta.1",
+  "description": "A command-line tool for sending email through multiple providers.",
+  "keywords": [
+    "Cloudflare Email",
+    "cli",
+    "email",
+    "mailersend",
+    "resend",
+    "smtp"
+  ],
+  "homepage": "https://github.com/akadotsh/mailsend#readme",
+  "bugs": {
+    "url": "https://github.com/akadotsh/mailsend/issues"
+  },
+  "license": "MIT",
+  "author": "akadotsh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akadotsh/mailsend.git",
+    "directory": "packages/cli"
+  },
+  "bin": {
+    "mailsend": "dist/mailsend.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
+  "scripts": {
+    "cli": "tsx src/index.ts",
+    "build": "pnpm typecheck && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/mailsend.js",
+    "prepack": "pnpm build",
+    "test": "echo 'No CLI tests yet'",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@akadotsh/mailsend-sdk": "workspace:^",
+    "dotenv": "^17.4.2",
+    "keytar": "^7.9.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

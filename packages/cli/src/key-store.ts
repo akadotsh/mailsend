@@ -1,6 +1,10 @@
 import Keytar from "keytar";
 
-import type { SecretStore } from "../types/secret";
+interface SecretStore {
+  set: (key: string, value: string) => Promise<void>;
+  get: (key: string) => Promise<string | null>;
+  delete: (key: string) => Promise<boolean>;
+}
 
 export class KeyStore implements SecretStore {
   private readonly name: string;

@@ -7,19 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      keytar:
-        specifier: ^7.9.0
-        version: 7.9.0
-      nodemailer:
-        specifier: ^9.0.3
-        version: 9.0.3
-      resend:
-        specifier: ^6.17.2
-        version: 6.17.2
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
@@ -45,6 +32,27 @@ importers:
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
+
+  packages/cli:
+    dependencies:
+      '@akadotsh/mailsend-sdk':
+        specifier: workspace:^
+        version: link:../sdk
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
+      keytar:
+        specifier: ^7.9.0
+        version: 7.9.0
+
+  packages/sdk:
+    dependencies:
+      nodemailer:
+        specifier: ^9.0.3
+        version: 9.0.3
+      resend:
+        specifier: ^6.17.2
+        version: 6.17.2
 
 packages:
 

@@ -1,5 +1,5 @@
-import type { EmailProvider } from "@/core/providers/index";
-import type { EmailMessage, SendResult } from "@/core/types/email";
+import type { EmailProvider } from "./provider.js";
+import type { EmailMessage, SendResult } from "./types.js";
 
 export class EmailClient {
   private readonly provider: EmailProvider;

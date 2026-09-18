@@ -1,0 +1,8 @@
+export { EmailClient } from "./client.js";
+export { SUPPORTED_PROVIDERS } from "./provider.js";
+export type { EmailProvider, SupportedProvider } from "./provider.js";
+export { CloudflareProvider } from "./providers/cloudflare.js";
+export { MailerSendProvider } from "./providers/mailersend.js";
+export { ResendProvider } from "./providers/resend.js";
+export { SmtpProvider } from "./providers/smtp.js";
+export type { EmailAttachment, EmailMessage, SendResult, SmtpConfig } from "./types.js";
