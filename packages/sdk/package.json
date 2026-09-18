@@ -41,7 +41,7 @@
     "build": "pnpm typecheck && pnpm build:types && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js",
     "build:types": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json --resolve-full-paths",
     "prepack": "pnpm build",
-    "test": "tsx --test src/**/*.test.ts",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

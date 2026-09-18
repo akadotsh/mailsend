@@ -5,6 +5,8 @@ export { SUPPORTED_PROVIDERS } from "@/provider";
 export type { EmailProvider, SupportedProvider } from "@/provider";
 export { CloudflareProvider } from "@/providers/cloudflare";
 export { MailerSendProvider } from "@/providers/mailersend";
+export { MockProvider } from "@/providers/mock";
+export type { MockProviderOptions } from "@/providers/mock";
 export { ResendProvider } from "@/providers/resend";
 export { SmtpProvider } from "@/providers/smtp";
 export type { EmailAttachment, EmailMessage, SendResult, SmtpConfig } from "@/types";
