@@ -1,0 +1,10 @@
+export { parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "@/bulk";
+export type { BulkRecipient, BulkSendEntry, BulkSendReport, BulkSender } from "@/bulk";
+export { EmailClient } from "@/client";
+export { SUPPORTED_PROVIDERS } from "@/provider";
+export type { EmailProvider, SupportedProvider } from "@/provider";
+export { CloudflareProvider } from "@/providers/cloudflare";
+export { MailerSendProvider } from "@/providers/mailersend";
+export { ResendProvider } from "@/providers/resend";
+export { SmtpProvider } from "@/providers/smtp";
+export type { EmailAttachment, EmailMessage, SendResult, SmtpConfig } from "@/types";

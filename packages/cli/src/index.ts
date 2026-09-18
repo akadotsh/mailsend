@@ -5,16 +5,20 @@ import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 
-import { parseBulkRecipients, sendBulkEmails } from "@/core/bulk";
-import { EmailClient } from "@/core/providers/client";
-import { CloudflareProvider } from "@/core/providers/cloudflare";
-import { SUPPORTED_PROVIDERS, type SupportedProvider } from "@/core/providers/index";
-import { MailerSendProvider } from "@/core/providers/mailersend";
-import { ResendProvider } from "@/core/providers/resend";
-import { SmtpProvider } from "@/core/providers/smtp";
-import { KeyStore } from "@/core/secrets/key-store";
+import {
+  CloudflareProvider,
+  EmailClient,
+  MailerSendProvider,
+  parseBulkRecipients,
+  ResendProvider,
+  sendBulkEmails,
+  SmtpProvider,
+  SUPPORTED_PROVIDERS,
+  type SupportedProvider,
+} from "@akadotsh/mailsend-sdk";
 
-import packageMetadata from "../../package.json" with { type: "json" };
+import { KeyStore } from "@/key-store";
+import packageMetadata from "@/package.json" with { type: "json" };
 
 const VERSION = packageMetadata.version;
 const secretStore = new KeyStore("mailsend");

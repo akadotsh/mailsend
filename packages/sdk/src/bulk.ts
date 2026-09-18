@@ -1,4 +1,4 @@
-import type { EmailMessage, SendResult } from "@/core/types/email";
+import type { EmailMessage, SendResult } from "@/types";
 
 export interface BulkRecipient {
   email: string;

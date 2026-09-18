@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  type BulkSender,
-  parseBulkRecipients,
-  renderBulkTemplate,
-  sendBulkEmails,
-} from "@/core/bulk";
+import { type BulkSender, parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "@/bulk";
 
 void test("parses quoted CSV values and renders recipient fields", () => {
   const recipients = parseBulkRecipients(

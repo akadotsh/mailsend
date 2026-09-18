@@ -1,9 +1,7 @@
 import Nodemailer, { type Transporter } from "nodemailer";
 
-import type { EmailProvider } from "@/core/providers/index";
-import type { EmailMessage, SendResult } from "@/core/types/index";
-
-import type { SmtpConfig } from "./transport";
+import type { EmailProvider } from "@/provider";
+import type { EmailMessage, SendResult, SmtpConfig } from "@/types";
 
 export class SmtpProvider implements EmailProvider {
   private readonly transporter: Transporter;
