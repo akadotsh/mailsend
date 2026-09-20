@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { MockProvider } from "@/providers/mock";
+import { MockProvider } from "./mock.js";
 
 const message = {
   from: "sender@example.com",

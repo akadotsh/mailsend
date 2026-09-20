@@ -1,5 +1,5 @@
-import type { EmailProvider } from "@/provider";
-import type { EmailMessage, SendResult } from "@/types";
+import type { EmailProvider } from "../provider.js";
+import type { EmailMessage, SendResult } from "../types.js";
 
 interface MailerSendAddress {
   email: string;
@@ -65,20 +65,14 @@ export class MailerSendProvider implements EmailProvider {
     });
 
     if (!response.ok) {
-      let errorMessage: string | undefined;
-      try {
-        const error: unknown = await response.json();
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "message" in error &&
-          typeof error.message === "string"
-        ) {
-          errorMessage = error.message;
-        }
-      } catch {
-        // MailerSend may return an empty or non-JSON response for upstream failures.
-      }
+      const error: unknown = await response.json().catch(() => undefined);
+      const errorMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof error.message === "string"
+          ? error.message
+          : undefined;
       throw new Error(errorMessage ?? `MailerSend request failed with status ${response.status}`);
     }
 
