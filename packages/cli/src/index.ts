@@ -11,6 +11,7 @@ import {
   parseBulkRecipients,
   ResendProvider,
   sendBulkEmails,
+  sendWithRetry,
   SmtpProvider,
   SUPPORTED_PROVIDERS,
   type EmailProvider,
@@ -39,6 +40,7 @@ Options:
       --send-bulk       Send one private email per row in a recipients CSV
       --recipients      CSV file with an email column (required with --send-bulk)
       --rate            Maximum emails per second for bulk sends (default: 2, max: 10)
+      --retries         Retries for transient send failures (default: 2, max: 5)
       --dry-run         Validate and preview a bulk send without sending
       --report          Write the bulk-send result as JSON
       --from            Sender address
@@ -133,6 +135,14 @@ function getBulkRate(rateOption: string | undefined): number {
   return rate;
 }
 
+function getRetries(retriesOption: string | undefined): number {
+  const retries = retriesOption === undefined ? 2 : Number(retriesOption);
+  if (!Number.isInteger(retries) || retries < 0 || retries > 5) {
+    throw new Error("--retries must be an integer from 0 to 5");
+  }
+  return retries;
+}
+
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
@@ -147,6 +157,7 @@ async function main(): Promise<void> {
       "send-bulk": { type: "boolean" },
       recipients: { type: "string" },
       rate: { type: "string" },
+      retries: { type: "string" },
       "dry-run": { type: "boolean" },
       report: { type: "string" },
       from: { type: "string" },
@@ -195,13 +206,17 @@ async function main(): Promise<void> {
       })),
     );
 
-    const result = await emailProvider.send({
-      from: values.from,
-      to: values.to,
-      subject: values.subject,
-      html: values.html,
-      ...(attachments.length ? { attachments } : {}),
-    });
+    const result = await sendWithRetry(
+      emailProvider,
+      {
+        from: values.from,
+        to: values.to,
+        subject: values.subject,
+        html: values.html,
+        ...(attachments.length ? { attachments } : {}),
+      },
+      getRetries(values.retries),
+    );
     console.log(`Email sent with ${result.provider}: ${result.id}`);
     return;
   }
@@ -222,10 +237,11 @@ async function main(): Promise<void> {
 
     const recipients = parseBulkRecipients(await readFile(values.recipients, "utf8"));
     const ratePerSecond = getBulkRate(values.rate);
+    const retries = getRetries(values.retries);
 
     if (values["dry-run"]) {
       console.log(
-        `Dry run passed: ${recipients.length} unique recipients, provider ${provider}, rate ${ratePerSecond}/second`,
+        `Dry run passed: ${recipients.length} unique recipients, provider ${provider}, rate ${ratePerSecond}/second, retries ${retries}`,
       );
       return;
     }
@@ -239,6 +255,7 @@ async function main(): Promise<void> {
       subject: values.subject,
       html: values.html,
       ratePerSecond,
+      retries,
     });
 
     if (values.report) {

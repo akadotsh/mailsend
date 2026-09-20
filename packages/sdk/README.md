@@ -8,17 +8,20 @@ npm install @akadotsh/mailsend-sdk@beta
 ```
 
 ```ts
-import { ResendProvider } from "@akadotsh/mailsend-sdk";
+import { ResendProvider, sendWithRetry } from "@akadotsh/mailsend-sdk";
 
 const email = new ResendProvider(process.env.RESEND_API_KEY!);
 
-await email.send({
+await sendWithRetry(email, {
   from: "Acme <hello@example.com>",
   to: "user@example.com",
   subject: "Welcome",
   html: "<h1>Hello!</h1>",
 });
 ```
+
+`sendWithRetry` retries transient failures twice by default. Pass a third argument from `0` to `5`
+to choose the number of retries.
 
 The package exports `CloudflareProvider`, `MailerSendProvider`, `ResendProvider`, and
 `SmtpProvider`. Implement the exported `EmailProvider` interface to add another provider.

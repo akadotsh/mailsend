@@ -28,11 +28,11 @@ npm install @akadotsh/mailsend-sdk@beta
 Create a provider and send a message:
 
 ```ts
-import { ResendProvider } from "@akadotsh/mailsend-sdk";
+import { ResendProvider, sendWithRetry } from "@akadotsh/mailsend-sdk";
 
 const email = new ResendProvider(process.env.RESEND_API_KEY!);
 
-await email.send({
+await sendWithRetry(email, {
   from: "Acme <hello@example.com>",
   to: "user@example.com",
   subject: "Welcome",
@@ -200,7 +200,8 @@ mailsend \
 ```
 
 Remove `--dry-run` to send. Bulk sends default to two emails per second; use `--rate` to select a
-positive rate up to 10. Use `--report ./bulk-report.json` to save per-recipient results.
+positive rate up to 10. Transient failures are retried twice by default; use `--retries` to select
+zero to five retries. Use `--report ./bulk-report.json` to save per-recipient results.
 
 Only send bulk email to recipients who explicitly opted in. Configure SPF, DKIM, and DMARC for the
 sending domain, include the unsubscribe mechanism required for your type of email, and suppress
@@ -223,6 +224,7 @@ Options:
       --send-bulk       Send one private email per row in a recipients CSV
       --recipients      CSV file with an email column (required with --send-bulk)
       --rate            Maximum emails per second for bulk sends (default: 2, max: 10)
+      --retries         Retries for transient send failures (default: 2, max: 5)
       --dry-run         Validate and preview a bulk send without sending
       --report          Write the bulk-send result as JSON
       --from            Sender address
