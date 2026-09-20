@@ -1,4 +1,4 @@
-import type { EmailMessage, SendResult } from "@/types";
+import type { EmailProvider } from "./provider.js";
 
 export interface BulkRecipient {
   email: string;
@@ -18,10 +18,6 @@ export interface BulkSendReport {
   sent: number;
   failed: number;
   entries: BulkSendEntry[];
-}
-
-export interface BulkSender {
-  send(message: EmailMessage): Promise<SendResult>;
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -131,7 +127,7 @@ function wait(milliseconds: number): Promise<void> {
 }
 
 export async function sendBulkEmails(options: {
-  sender: BulkSender;
+  sender: Pick<EmailProvider, "send">;
   recipients: BulkRecipient[];
   from: string;
   subject: string;
@@ -141,11 +137,10 @@ export async function sendBulkEmails(options: {
   const entries: BulkSendEntry[] = [];
   const delayMilliseconds = 1_000 / options.ratePerSecond;
 
-  // The promise chain keeps sends sequential so a slow provider cannot build unbounded concurrency.
-  await options.recipients.reduce<Promise<void>>(async (previous, recipient, index) => {
-    await previous;
-
+  for (const [index, recipient] of options.recipients.entries()) {
     try {
+      // Sequential sends enforce the configured rate and avoid unbounded provider concurrency.
+      // eslint-disable-next-line no-await-in-loop
       const result = await options.sender.send({
         from: options.from,
         to: recipient.email,
@@ -162,9 +157,10 @@ export async function sendBulkEmails(options: {
     }
 
     if (index < options.recipients.length - 1) {
+      // eslint-disable-next-line no-await-in-loop
       await wait(delayMilliseconds);
     }
-  }, Promise.resolve());
+  }
 
   const sent = entries.filter((entry) => entry.status === "sent").length;
   return {

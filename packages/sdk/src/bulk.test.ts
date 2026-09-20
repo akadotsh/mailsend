@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { type BulkSender, parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "@/bulk";
+import { parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "./bulk.js";
 
 void test("parses quoted CSV values and renders recipient fields", () => {
   const recipients = parseBulkRecipients(
@@ -33,18 +33,17 @@ void test("sends private messages and reports failures", async () => {
     "email,name\nalice@example.com,Alice\nbob@example.com,Bob\n",
   );
   const destinations: Array<string | string[]> = [];
-  const sender: BulkSender = {
-    send(message) {
-      destinations.push(message.to);
-      if (message.to === "bob@example.com") {
-        return Promise.reject(new Error("provider rejected recipient"));
-      }
-      return Promise.resolve({ id: "message-1", provider: "test" });
-    },
-  };
 
   const report = await sendBulkEmails({
-    sender,
+    sender: {
+      send(message) {
+        destinations.push(message.to);
+        if (message.to === "bob@example.com") {
+          return Promise.reject(new Error("provider rejected recipient"));
+        }
+        return Promise.resolve({ id: "message-1", provider: "test" });
+      },
+    },
     recipients,
     from: "sender@example.com",
     subject: "Hello {{name}}",
