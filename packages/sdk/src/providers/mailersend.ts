@@ -1,4 +1,4 @@
-import type { EmailProvider } from "../provider.js";
+import { providerResponseError, type EmailProvider } from "../provider.js";
 import type { EmailMessage, SendResult } from "../types.js";
 
 interface MailerSendAddress {
@@ -73,7 +73,10 @@ export class MailerSendProvider implements EmailProvider {
         typeof error.message === "string"
           ? error.message
           : undefined;
-      throw new Error(errorMessage ?? `MailerSend request failed with status ${response.status}`);
+      throw providerResponseError(
+        response,
+        errorMessage ?? `MailerSend request failed with status ${response.status}`,
+      );
     }
 
     const messageId = response.headers.get("x-message-id");

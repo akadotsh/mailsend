@@ -1,4 +1,6 @@
-import type { EmailProvider } from "./provider.js";
+import { setTimeout as wait } from "node:timers/promises";
+
+import { sendWithRetry, type EmailProvider } from "./provider.js";
 
 export interface BulkRecipient {
   email: string;
@@ -122,10 +124,6 @@ export function renderBulkTemplate(template: string, fields: Record<string, stri
   return template.replace(TEMPLATE_PATTERN, (_match, field: string) => fields[field] ?? "");
 }
 
-function wait(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
 export async function sendBulkEmails(options: {
   sender: Pick<EmailProvider, "send">;
   recipients: BulkRecipient[];
@@ -133,6 +131,7 @@ export async function sendBulkEmails(options: {
   subject: string;
   html: string;
   ratePerSecond: number;
+  retries?: number;
 }): Promise<BulkSendReport> {
   const entries: BulkSendEntry[] = [];
   const delayMilliseconds = 1_000 / options.ratePerSecond;
@@ -141,12 +140,16 @@ export async function sendBulkEmails(options: {
     try {
       // Sequential sends enforce the configured rate and avoid unbounded provider concurrency.
       // eslint-disable-next-line no-await-in-loop
-      const result = await options.sender.send({
-        from: options.from,
-        to: recipient.email,
-        subject: renderBulkTemplate(options.subject, recipient.fields),
-        html: renderBulkTemplate(options.html, recipient.fields),
-      });
+      const result = await sendWithRetry(
+        options.sender,
+        {
+          from: options.from,
+          to: recipient.email,
+          subject: renderBulkTemplate(options.subject, recipient.fields),
+          html: renderBulkTemplate(options.html, recipient.fields),
+        },
+        options.retries,
+      );
       entries.push({ email: recipient.email, status: "sent", id: result.id });
     } catch (error) {
       entries.push({

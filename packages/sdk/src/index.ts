@@ -1,6 +1,6 @@
 export { parseBulkRecipients, renderBulkTemplate, sendBulkEmails } from "./bulk.js";
 export type { BulkRecipient, BulkSendEntry, BulkSendReport } from "./bulk.js";
-export { SUPPORTED_PROVIDERS } from "./provider.js";
+export { sendWithRetry, SUPPORTED_PROVIDERS } from "./provider.js";
 export type { EmailProvider, SupportedProvider } from "./provider.js";
 export { CloudflareProvider } from "./providers/cloudflare.js";
 export { MailerSendProvider } from "./providers/mailersend.js";

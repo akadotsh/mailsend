@@ -1,4 +1,4 @@
-import type { EmailProvider } from "../provider.js";
+import { providerResponseError, type EmailProvider } from "../provider.js";
 import type { EmailMessage, SendResult } from "../types.js";
 
 const RESEND_EMAIL_ENDPOINT = "https://api.resend.com/emails";
@@ -39,7 +39,7 @@ export class ResendProvider implements EmailProvider {
         typeof result.message === "string"
           ? result.message
           : `Resend request failed with status ${response.status}`;
-      throw new Error(errorMessage);
+      throw providerResponseError(response, errorMessage);
     }
     if (
       typeof result !== "object" ||
