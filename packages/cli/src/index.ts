@@ -7,11 +7,11 @@ import { parseArgs } from "node:util";
 
 import {
   CloudflareProvider,
+  EmailClient,
   MailerSendProvider,
   parseBulkRecipients,
   ResendProvider,
   sendBulkEmails,
-  sendWithRetry,
   SmtpProvider,
   SUPPORTED_PROVIDERS,
   type EmailProvider,
@@ -198,7 +198,9 @@ async function main(): Promise<void> {
       throw new Error("--from, --to, --subject, and --html are required to send an email");
     }
 
-    const emailProvider = await createEmailProvider(provider);
+    const email = new EmailClient(await createEmailProvider(provider), {
+      retries: getRetries(values.retries),
+    });
     const attachments = await Promise.all(
       (values.attachment ?? []).map(async (path) => ({
         filename: basename(path),
@@ -206,17 +208,13 @@ async function main(): Promise<void> {
       })),
     );
 
-    const result = await sendWithRetry(
-      emailProvider,
-      {
-        from: values.from,
-        to: values.to,
-        subject: values.subject,
-        html: values.html,
-        ...(attachments.length ? { attachments } : {}),
-      },
-      getRetries(values.retries),
-    );
+    const result = await email.send({
+      from: values.from,
+      to: values.to,
+      subject: values.subject,
+      html: values.html,
+      ...(attachments.length ? { attachments } : {}),
+    });
     console.log(`Email sent with ${result.provider}: ${result.id}`);
     return;
   }

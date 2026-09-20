@@ -28,11 +28,11 @@ npm install @akadotsh/mailsend-sdk@beta
 Create a provider and send a message:
 
 ```ts
-import { ResendProvider, sendWithRetry } from "@akadotsh/mailsend-sdk";
+import { EmailClient, ResendProvider } from "@akadotsh/mailsend-sdk";
 
-const email = new ResendProvider(process.env.RESEND_API_KEY!);
+const email = new EmailClient(new ResendProvider(process.env.RESEND_API_KEY!));
 
-await sendWithRetry(email, {
+await email.send({
   from: "Acme <hello@example.com>",
   to: "user@example.com",
   subject: "Welcome",
