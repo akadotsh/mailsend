@@ -25,12 +25,12 @@ Install the prerelease SDK:
 npm install @akadotsh/mailsend-sdk@beta
 ```
 
-Create a provider and pass it to the shared client:
+Create a provider and send a message:
 
 ```ts
-import { EmailClient, ResendProvider } from "@akadotsh/mailsend-sdk";
+import { ResendProvider } from "@akadotsh/mailsend-sdk";
 
-const email = new EmailClient(new ResendProvider(process.env.RESEND_API_KEY!));
+const email = new ResendProvider(process.env.RESEND_API_KEY!);
 
 await email.send({
   from: "Acme <hello@example.com>",

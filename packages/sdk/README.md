@@ -8,9 +8,9 @@ npm install @akadotsh/mailsend-sdk@beta
 ```
 
 ```ts
-import { EmailClient, ResendProvider } from "@akadotsh/mailsend-sdk";
+import { ResendProvider } from "@akadotsh/mailsend-sdk";
 
-const email = new EmailClient(new ResendProvider(process.env.RESEND_API_KEY!));
+const email = new ResendProvider(process.env.RESEND_API_KEY!);
 
 await email.send({
   from: "Acme <hello@example.com>",
@@ -26,12 +26,11 @@ The package exports `CloudflareProvider`, `MailerSendProvider`, `ResendProvider`
 Use `MockProvider` in tests without making network requests:
 
 ```ts
-import { EmailClient, MockProvider } from "@akadotsh/mailsend-sdk";
+import { MockProvider } from "@akadotsh/mailsend-sdk";
 
 const provider = new MockProvider();
-const email = new EmailClient(provider);
 
-await email.send({
+await provider.send({
   from: "sender@example.com",
   to: "recipient@example.com",
   subject: "Test",

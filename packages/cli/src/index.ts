@@ -7,21 +7,21 @@ import { parseArgs } from "node:util";
 
 import {
   CloudflareProvider,
-  EmailClient,
   MailerSendProvider,
   parseBulkRecipients,
   ResendProvider,
   sendBulkEmails,
   SmtpProvider,
   SUPPORTED_PROVIDERS,
+  type EmailProvider,
   type SupportedProvider,
 } from "@akadotsh/mailsend-sdk";
+import Keytar from "keytar";
 
-import { KeyStore } from "@/key-store";
-import packageMetadata from "@/package.json" with { type: "json" };
+import packageMetadata from "../package.json" with { type: "json" };
 
 const VERSION = packageMetadata.version;
-const secretStore = new KeyStore("mailsend");
+const KEYCHAIN_SERVICE = "mailsend";
 
 const HELP_TEXT = `mailsend - send email from the command line
 
@@ -87,11 +87,11 @@ async function configureProvider(
     throw new Error("--api-key is required with --config");
   }
 
-  await secretStore.set(getProviderApiKeyName(provider), apiKey);
+  await Keytar.setPassword(KEYCHAIN_SERVICE, getProviderApiKeyName(provider), apiKey);
 }
 
 async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
-  const storedApiKey = await secretStore.get(getProviderApiKeyName(provider));
+  const storedApiKey = await Keytar.getPassword(KEYCHAIN_SERVICE, getProviderApiKeyName(provider));
   if (storedApiKey) {
     return storedApiKey;
   }
@@ -101,27 +101,25 @@ async function getProviderApiKey(provider: SupportedProvider): Promise<string> {
   );
 }
 
-async function createEmailClient(provider: SupportedProvider): Promise<EmailClient> {
+async function createEmailProvider(provider: SupportedProvider): Promise<EmailProvider> {
   switch (provider) {
     case "cloudflare":
-      return new EmailClient(new CloudflareProvider(await getProviderApiKey(provider)));
+      return new CloudflareProvider(await getProviderApiKey(provider));
     case "mailersend":
-      return new EmailClient(new MailerSendProvider(await getProviderApiKey(provider)));
+      return new MailerSendProvider(await getProviderApiKey(provider));
     case "resend":
-      return new EmailClient(new ResendProvider(await getProviderApiKey(provider)));
+      return new ResendProvider(await getProviderApiKey(provider));
     case "smtp":
-      return new EmailClient(
-        new SmtpProvider({
-          host: getRequiredEnvironmentVariable("SMTP_HOST"),
-          port: 587,
-          secure: false,
-          requireTLS: true,
-          auth: {
-            user: getRequiredEnvironmentVariable("SMTP_USER"),
-            pass: getRequiredEnvironmentVariable("SMTP_PASS"),
-          },
-        }),
-      );
+      return new SmtpProvider({
+        host: getRequiredEnvironmentVariable("SMTP_HOST"),
+        port: 587,
+        secure: false,
+        requireTLS: true,
+        auth: {
+          user: getRequiredEnvironmentVariable("SMTP_USER"),
+          pass: getRequiredEnvironmentVariable("SMTP_PASS"),
+        },
+      });
   }
 
   throw new Error("Unsupported provider");
@@ -189,7 +187,7 @@ async function main(): Promise<void> {
       throw new Error("--from, --to, --subject, and --html are required to send an email");
     }
 
-    const emailClient = await createEmailClient(provider);
+    const emailProvider = await createEmailProvider(provider);
     const attachments = await Promise.all(
       (values.attachment ?? []).map(async (path) => ({
         filename: basename(path),
@@ -197,7 +195,7 @@ async function main(): Promise<void> {
       })),
     );
 
-    const result = await emailClient.send({
+    const result = await emailProvider.send({
       from: values.from,
       to: values.to,
       subject: values.subject,
@@ -232,10 +230,10 @@ async function main(): Promise<void> {
       return;
     }
 
-    const emailClient = await createEmailClient(provider);
+    const emailProvider = await createEmailProvider(provider);
     console.log(`Sending ${recipients.length} private emails at up to ${ratePerSecond}/second...`);
     const report = await sendBulkEmails({
-      sender: emailClient,
+      sender: emailProvider,
       recipients,
       from: values.from,
       subject: values.subject,
