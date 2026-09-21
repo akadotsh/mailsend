@@ -1,7 +1,7 @@
 # `@akadotsh/mailsend-sdk`
 
-A provider-neutral TypeScript SDK for sending email through Cloudflare Email, MailerSend, Resend,
-or SMTP.
+A provider-neutral TypeScript SDK for sending email through Cloudflare Email, MailerSend, Postmark,
+Resend, or SMTP.
 
 ```sh
 npm install @akadotsh/mailsend-sdk@beta
@@ -23,8 +23,9 @@ await email.send({
 `EmailClient` retries transient failures twice by default. Pass `{ retries: 0 }` through
 `{ retries: 5 }` as its second constructor argument to choose the number of retries.
 
-The package exports `CloudflareProvider`, `MailerSendProvider`, `ResendProvider`, and
-`SmtpProvider`. Implement the exported `EmailProvider` interface to add another provider.
+The package exports `CloudflareProvider`, `MailerSendProvider`, `PostmarkProvider`,
+`ResendProvider`, and `SmtpProvider`. Implement the exported `EmailProvider` interface to add
+another provider.
 
 Use `MockProvider` in tests without making network requests:
 

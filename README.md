@@ -40,7 +40,7 @@ await email.send({
 });
 ```
 
-The SDK exports adapters for Cloudflare Email, MailerSend, Resend, and SMTP, as well as the
+The SDK exports adapters for Cloudflare Email, MailerSend, Postmark, Resend, and SMTP, as well as the
 `EmailProvider` interface for custom integrations. Credential storage and environment loading are
 CLI concerns and are not performed by the SDK.
 
@@ -50,6 +50,7 @@ CLI concerns and are not performed by the SDK.
 | ---------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Cloudflare Email | API token stored in the system keychain                         | Requires an onboarded domain and an API token with Email Sending: Edit.  |
 | `mailersend`     | API key stored in the system keychain                           | The sender must use a domain verified in the user's MailerSend account.  |
+| `postmark`       | Server token stored in the system keychain                      | The sender must be verified in the user's Postmark server.               |
 | `resend`         | API key stored in the system keychain                           | Configure the key once with the CLI before sending email.                |
 | `smtp`           | `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` environment variables | Uses port `587` with STARTTLS. Variables can be placed in a `.env` file. |
 
@@ -83,6 +84,14 @@ mailsend --config --provider mailersend --api-key mlsn_your_api_token
 
 The sender passed to `--from` must use a domain verified in the MailerSend account.
 The domain is supplied by the user when sending and is not stored by MailSend.
+
+### Postmark
+
+Save a Postmark server token in the operating system's keychain:
+
+```sh
+mailsend --config --provider postmark --api-key your_postmark_server_token
+```
 
 ### Resend
 
@@ -136,6 +145,18 @@ mailsend \
   --subject "Hello from MailSend" \
   --html "<h1>Hello!</h1><p>This email was sent with MailerSend.</p>" \
   --attachment ./test.pdf
+```
+
+Using Postmark:
+
+```sh
+mailsend \
+  --send-email \
+  --provider postmark \
+  --from sender@example.com \
+  --to recipient@example.com \
+  --subject "Hello from MailSend" \
+  --html "<p>This email was sent with Postmark.</p>"
 ```
 
 Using Resend:
