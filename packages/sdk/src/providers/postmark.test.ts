@@ -88,3 +88,71 @@ void test("sends email with a Postmark template", async (context) => {
 
   assert.deepEqual(result, { id: "template-1", provider: "postmark" });
 });
+
+void test("sends Postmark batches and preserves per-message results", async (context) => {
+  context.mock.method(globalThis, "fetch", async (...[url, init]: Parameters<typeof fetch>) => {
+    const body = init?.body;
+    assert.ok(typeof body === "string");
+    if (url === "https://api.postmarkapp.com/email/batch") {
+      assert.equal(Array.isArray(JSON.parse(body)), true);
+      return Response.json([
+        {
+          ErrorCode: 0,
+          Message: "OK",
+          MessageID: "batch-1",
+          SubmittedAt: "2026-09-21T00:00:00Z",
+          To: "first@example.com",
+        },
+        { ErrorCode: 406, Message: "Inactive recipient", To: "second@example.com" },
+      ]);
+    }
+    assert.equal(url, "https://api.postmarkapp.com/email/batchWithTemplates");
+    assert.deepEqual(JSON.parse(body), {
+      Messages: [
+        {
+          From: "sender@example.com",
+          To: "first@example.com",
+          TemplateId: 42,
+          TemplateModel: { name: "Ada" },
+        },
+      ],
+    });
+    return Response.json([{ ErrorCode: 0, Message: "OK", MessageID: "template-batch-1" }]);
+  });
+
+  const provider = new PostmarkProvider("pm_test");
+  const results = await provider.sendBatch([
+    {
+      from: "sender@example.com",
+      to: "first@example.com",
+      subject: "Hello",
+      text: "Hello",
+    },
+    {
+      from: "sender@example.com",
+      to: "second@example.com",
+      subject: "Hello",
+      text: "Hello",
+    },
+  ]);
+  assert.deepEqual(results, [
+    {
+      errorCode: 0,
+      id: "batch-1",
+      message: "OK",
+      submittedAt: "2026-09-21T00:00:00Z",
+      to: "first@example.com",
+    },
+    { errorCode: 406, message: "Inactive recipient", to: "second@example.com" },
+  ]);
+
+  const templateResults = await provider.sendBatchWithTemplates([
+    {
+      from: "sender@example.com",
+      to: "first@example.com",
+      templateId: 42,
+      templateModel: { name: "Ada" },
+    },
+  ]);
+  assert.deepEqual(templateResults, [{ errorCode: 0, id: "template-batch-1", message: "OK" }]);
+});

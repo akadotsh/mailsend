@@ -11,6 +11,7 @@ export type { MockProviderOptions } from "./providers/mock.js";
 export { PostmarkProvider } from "./providers/postmark.js";
 export type {
   PostmarkAttachment,
+  PostmarkBatchResult,
   PostmarkEmailMessage,
   PostmarkTemplateMessage,
   PostmarkTrackLinks,

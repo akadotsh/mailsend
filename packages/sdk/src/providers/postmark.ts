@@ -37,6 +37,14 @@ export type PostmarkTemplateMessage = {
   trackOpens?: boolean;
 } & ({ templateAlias: string; templateId?: never } | { templateAlias?: never; templateId: number });
 
+export interface PostmarkBatchResult {
+  errorCode: number;
+  id?: string;
+  message: string;
+  submittedAt?: string;
+  to?: string;
+}
+
 type PostmarkMessageFields = Pick<
   PostmarkTemplateMessage,
   | "attachments"
@@ -81,6 +89,26 @@ function toPostmarkFields(message: PostmarkMessageFields): object {
   };
 }
 
+function toPostmarkEmail(message: PostmarkEmailMessage): object {
+  return {
+    ...toPostmarkFields(message),
+    Subject: message.subject,
+    ...(message.text ? { TextBody: message.text } : {}),
+    ...(message.html ? { HtmlBody: message.html } : {}),
+  };
+}
+
+function toPostmarkTemplate(message: PostmarkTemplateMessage): object {
+  return {
+    ...toPostmarkFields(message),
+    ...(message.templateId === undefined
+      ? { TemplateAlias: message.templateAlias }
+      : { TemplateId: message.templateId }),
+    TemplateModel: message.templateModel,
+    ...(message.inlineCss === undefined ? {} : { InlineCss: message.inlineCss }),
+  };
+}
+
 function getErrorMessage(result: unknown): string | undefined {
   return typeof result === "object" &&
     result !== null &&
@@ -102,6 +130,41 @@ function toSendResult(result: unknown): SendResult {
   return { id: result.MessageID, provider: "postmark" };
 }
 
+function toBatchResults(result: unknown): PostmarkBatchResult[] {
+  if (!Array.isArray(result)) {
+    throw new Error("Postmark batch response was not an array");
+  }
+  return result.map((entry: unknown) => {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      !("ErrorCode" in entry) ||
+      typeof entry.ErrorCode !== "number" ||
+      !("Message" in entry) ||
+      typeof entry.Message !== "string"
+    ) {
+      throw new Error("Postmark batch response contained an invalid result");
+    }
+    return {
+      errorCode: entry.ErrorCode,
+      message: entry.Message,
+      ...("MessageID" in entry && typeof entry.MessageID === "string"
+        ? { id: entry.MessageID }
+        : {}),
+      ...("SubmittedAt" in entry && typeof entry.SubmittedAt === "string"
+        ? { submittedAt: entry.SubmittedAt }
+        : {}),
+      ...("To" in entry && typeof entry.To === "string" ? { to: entry.To } : {}),
+    };
+  });
+}
+
+function checkBatchSize(messages: readonly unknown[]): void {
+  if (messages.length === 0 || messages.length > 500) {
+    throw new Error("Postmark batches must contain 1 to 500 messages");
+  }
+}
+
 export class PostmarkProvider implements EmailProvider {
   readonly name = "postmark";
   private readonly serverToken: string;
@@ -114,30 +177,35 @@ export class PostmarkProvider implements EmailProvider {
   }
 
   async send(message: PostmarkEmailMessage): Promise<SendResult> {
-    return toSendResult(
-      await this.request("/email", {
-        ...toPostmarkFields(message),
-        Subject: message.subject,
-        ...(message.text ? { TextBody: message.text } : {}),
-        ...(message.html ? { HtmlBody: message.html } : {}),
-      }),
-    );
+    return toSendResult(await this.request("/email", toPostmarkEmail(message)));
   }
 
   async sendWithTemplate(message: PostmarkTemplateMessage): Promise<SendResult> {
-    return toSendResult(
-      await this.request("/email/withTemplate", {
-        ...toPostmarkFields(message),
-        ...(message.templateId === undefined
-          ? { TemplateAlias: message.templateAlias }
-          : { TemplateId: message.templateId }),
-        TemplateModel: message.templateModel,
-        ...(message.inlineCss === undefined ? {} : { InlineCss: message.inlineCss }),
+    return toSendResult(await this.request("/email/withTemplate", toPostmarkTemplate(message)));
+  }
+
+  async sendBatch(messages: PostmarkEmailMessage[]): Promise<PostmarkBatchResult[]> {
+    checkBatchSize(messages);
+    return toBatchResults(
+      await this.request(
+        "/email/batch",
+        messages.map((message) => toPostmarkEmail(message)),
+      ),
+    );
+  }
+
+  async sendBatchWithTemplates(
+    messages: PostmarkTemplateMessage[],
+  ): Promise<PostmarkBatchResult[]> {
+    checkBatchSize(messages);
+    return toBatchResults(
+      await this.request("/email/batchWithTemplates", {
+        Messages: messages.map((message) => toPostmarkTemplate(message)),
       }),
     );
   }
 
-  private async request(path: string, body: object): Promise<unknown> {
+  private async request(path: string, body: unknown): Promise<unknown> {
     const response = await fetch(`${POSTMARK_API}${path}`, {
       method: "POST",
       headers: {
