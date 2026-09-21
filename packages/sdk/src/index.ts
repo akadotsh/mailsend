@@ -13,8 +13,14 @@ export type {
   PostmarkAttachment,
   PostmarkBatchResult,
   PostmarkEmailMessage,
+  PostmarkOperationResult,
   PostmarkTemplateMessage,
   PostmarkTrackLinks,
+  PostmarkWebhook,
+  PostmarkWebhookRequest,
+  PostmarkWebhookStatistics,
+  PostmarkWebhookTriggers,
+  PostmarkWebhookVerificationResult,
 } from "./providers/postmark.js";
 export { ResendProvider } from "./providers/resend.js";
 export { SmtpProvider } from "./providers/smtp.js";

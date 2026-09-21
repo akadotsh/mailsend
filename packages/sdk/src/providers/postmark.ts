@@ -45,6 +45,58 @@ export interface PostmarkBatchResult {
   to?: string;
 }
 
+export interface PostmarkWebhookTriggers {
+  Bounce?: { Enabled: boolean; IncludeContent?: boolean };
+  Click?: { Enabled: boolean };
+  Delivery?: { Enabled: boolean };
+  Open?: { Enabled: boolean; PostFirstOpenOnly?: boolean };
+  SpamComplaint?: { Enabled: boolean; IncludeContent?: boolean };
+  SubscriptionChange?: { Enabled: boolean };
+}
+
+export interface PostmarkWebhookRequest {
+  HttpAuth?: { Password: string; Username: string };
+  HttpHeaders?: Array<{ Name: string; Value: string }>;
+  MessageStream: string;
+  Triggers: PostmarkWebhookTriggers;
+  Url: string;
+  Verify?: boolean;
+}
+
+export interface PostmarkWebhook extends Omit<PostmarkWebhookRequest, "Verify"> {
+  ID: number;
+  Status: "unverified" | "verified";
+}
+
+export interface PostmarkWebhookVerificationResult {
+  Message: string;
+  Results: Array<{
+    Message: string;
+    StatusCode: number;
+    Success: boolean;
+    TriggerType: string;
+  }>;
+  Success: boolean;
+  Url: string;
+  Id: number;
+}
+
+export interface PostmarkWebhookStatistics {
+  MessageStreamId: string;
+  Metrics: Record<string, number | null>;
+  MetricsByTrigger: Record<string, Record<string, number | null>>;
+  ServerId: number;
+  Statuses: Record<string, "unverified" | "verified">;
+  TimeRange: { EndTime: string; Hours: number; StartTime: string };
+  Url: string;
+  WebhookId: number;
+}
+
+export interface PostmarkOperationResult {
+  ErrorCode: number;
+  Message: string;
+}
+
 type PostmarkMessageFields = Pick<
   PostmarkTemplateMessage,
   | "attachments"
@@ -165,6 +217,100 @@ function checkBatchSize(messages: readonly unknown[]): void {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toWebhookHeader(value: unknown): { Name: string; Value: string } {
+  if (!isRecord(value) || typeof value.Name !== "string" || typeof value.Value !== "string") {
+    throw new Error("Postmark returned invalid webhook headers");
+  }
+  return { Name: value.Name, Value: value.Value };
+}
+
+function toWebhook(result: unknown): PostmarkWebhook {
+  if (
+    !isRecord(result) ||
+    typeof result.ID !== "number" ||
+    typeof result.Url !== "string" ||
+    typeof result.MessageStream !== "string" ||
+    (result.Status !== "verified" && result.Status !== "unverified") ||
+    !isRecord(result.Triggers)
+  ) {
+    throw new Error("Postmark returned an invalid webhook");
+  }
+  if (
+    result.HttpAuth !== undefined &&
+    (!isRecord(result.HttpAuth) ||
+      typeof result.HttpAuth.Username !== "string" ||
+      typeof result.HttpAuth.Password !== "string")
+  ) {
+    throw new Error("Postmark returned invalid webhook authentication");
+  }
+  if (
+    result.HttpHeaders !== undefined &&
+    (!Array.isArray(result.HttpHeaders) ||
+      !result.HttpHeaders.every(
+        (header) =>
+          isRecord(header) && typeof header.Name === "string" && typeof header.Value === "string",
+      ))
+  ) {
+    throw new Error("Postmark returned invalid webhook headers");
+  }
+  return {
+    ID: result.ID,
+    Url: result.Url,
+    MessageStream: result.MessageStream,
+    Status: result.Status,
+    Triggers: result.Triggers,
+    ...(isRecord(result.HttpAuth) &&
+    typeof result.HttpAuth.Username === "string" &&
+    typeof result.HttpAuth.Password === "string"
+      ? {
+          HttpAuth: {
+            Username: result.HttpAuth.Username,
+            Password: result.HttpAuth.Password,
+          },
+        }
+      : {}),
+    ...(Array.isArray(result.HttpHeaders)
+      ? { HttpHeaders: result.HttpHeaders.map(toWebhookHeader) }
+      : {}),
+  };
+}
+
+function toNumberRecord(value: unknown): Record<string, number | null> {
+  if (!isRecord(value)) {
+    throw new Error("Postmark returned invalid webhook metrics");
+  }
+  const metrics: Record<string, number | null> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item !== "number" && item !== null) {
+      throw new Error("Postmark returned invalid webhook metrics");
+    }
+    metrics[key] = item;
+  }
+  return metrics;
+}
+
+function toStatusRecord(value: Record<string, unknown>): Record<string, "unverified" | "verified"> {
+  const statuses: Record<string, "unverified" | "verified"> = {};
+  for (const [key, status] of Object.entries(value)) {
+    if (status !== "verified" && status !== "unverified") {
+      throw new Error("Postmark returned invalid webhook statistics");
+    }
+    statuses[key] = status;
+  }
+  return statuses;
+}
+
+function webhookPath(id: number, suffix = ""): string {
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new Error("Postmark webhook ID must be a positive integer");
+  }
+  return `/webhooks/${id}${suffix}`;
+}
+
 export class PostmarkProvider implements EmailProvider {
   readonly name = "postmark";
   private readonly serverToken: string;
@@ -205,15 +351,129 @@ export class PostmarkProvider implements EmailProvider {
     );
   }
 
-  private async request(path: string, body: unknown): Promise<unknown> {
+  async listWebhooks(messageStream?: string): Promise<PostmarkWebhook[]> {
+    const query = messageStream ? `?MessageStream=${encodeURIComponent(messageStream)}` : "";
+    const result = await this.request(`/webhooks${query}`, undefined, "GET");
+    if (!isRecord(result) || !Array.isArray(result.Webhooks)) {
+      throw new Error("Postmark returned an invalid webhook list");
+    }
+    return result.Webhooks.map(toWebhook);
+  }
+
+  async getWebhook(id: number): Promise<PostmarkWebhook> {
+    return toWebhook(await this.request(webhookPath(id), undefined, "GET"));
+  }
+
+  async createWebhook(webhook: PostmarkWebhookRequest): Promise<PostmarkWebhook> {
+    return toWebhook(await this.request("/webhooks", webhook));
+  }
+
+  async updateWebhook(id: number, webhook: PostmarkWebhookRequest): Promise<PostmarkWebhook> {
+    return toWebhook(await this.request(webhookPath(id), webhook, "PUT"));
+  }
+
+  async verifyWebhook(id: number): Promise<PostmarkWebhookVerificationResult> {
+    const result = await this.request(webhookPath(id, "/verify"), undefined);
+    if (
+      !isRecord(result) ||
+      typeof result.Id !== "number" ||
+      typeof result.Url !== "string" ||
+      typeof result.Success !== "boolean" ||
+      typeof result.Message !== "string" ||
+      !Array.isArray(result.Results)
+    ) {
+      throw new Error("Postmark returned an invalid webhook verification result");
+    }
+    const results = result.Results.map((entry: unknown) => {
+      if (
+        !isRecord(entry) ||
+        typeof entry.TriggerType !== "string" ||
+        typeof entry.Success !== "boolean" ||
+        typeof entry.StatusCode !== "number" ||
+        typeof entry.Message !== "string"
+      ) {
+        throw new Error("Postmark returned an invalid webhook verification result");
+      }
+      return {
+        TriggerType: entry.TriggerType,
+        Success: entry.Success,
+        StatusCode: entry.StatusCode,
+        Message: entry.Message,
+      };
+    });
+    return {
+      Id: result.Id,
+      Url: result.Url,
+      Success: result.Success,
+      Message: result.Message,
+      Results: results,
+    };
+  }
+
+  async deleteWebhook(id: number): Promise<PostmarkOperationResult> {
+    const result = await this.request(webhookPath(id), undefined, "DELETE");
+    if (
+      !isRecord(result) ||
+      typeof result.ErrorCode !== "number" ||
+      typeof result.Message !== "string"
+    ) {
+      throw new Error("Postmark returned an invalid webhook deletion result");
+    }
+    return { ErrorCode: result.ErrorCode, Message: result.Message };
+  }
+
+  async getWebhookStatistics(id: number): Promise<PostmarkWebhookStatistics> {
+    const result = await this.request(webhookPath(id, "/statistics"), undefined, "GET");
+    if (
+      !isRecord(result) ||
+      typeof result.WebhookId !== "number" ||
+      typeof result.ServerId !== "number" ||
+      typeof result.MessageStreamId !== "string" ||
+      typeof result.Url !== "string" ||
+      !isRecord(result.Statuses) ||
+      !isRecord(result.TimeRange) ||
+      typeof result.TimeRange.StartTime !== "string" ||
+      typeof result.TimeRange.EndTime !== "string" ||
+      typeof result.TimeRange.Hours !== "number" ||
+      !isRecord(result.MetricsByTrigger)
+    ) {
+      throw new Error("Postmark returned invalid webhook statistics");
+    }
+    const metricsByTrigger = Object.fromEntries(
+      Object.entries(result.MetricsByTrigger).map(([trigger, metrics]) => [
+        trigger,
+        toNumberRecord(metrics),
+      ]),
+    );
+    return {
+      WebhookId: result.WebhookId,
+      ServerId: result.ServerId,
+      MessageStreamId: result.MessageStreamId,
+      Url: result.Url,
+      Statuses: toStatusRecord(result.Statuses),
+      TimeRange: {
+        StartTime: result.TimeRange.StartTime,
+        EndTime: result.TimeRange.EndTime,
+        Hours: result.TimeRange.Hours,
+      },
+      Metrics: toNumberRecord(result.Metrics),
+      MetricsByTrigger: metricsByTrigger,
+    };
+  }
+
+  private async request(
+    path: string,
+    body?: unknown,
+    method: "DELETE" | "GET" | "POST" | "PUT" = "POST",
+  ): Promise<unknown> {
     const response = await fetch(`${POSTMARK_API}${path}`, {
-      method: "POST",
+      method,
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
         "X-Postmark-Server-Token": this.serverToken,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       },
-      body: JSON.stringify(body),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
 
     const result: unknown = await response.json().catch(() => undefined);

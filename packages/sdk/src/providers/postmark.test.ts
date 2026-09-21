@@ -156,3 +156,71 @@ void test("sends Postmark batches and preserves per-message results", async (con
   ]);
   assert.deepEqual(templateResults, [{ errorCode: 0, id: "template-batch-1", message: "OK" }]);
 });
+
+void test("manages Postmark webhooks", async (context) => {
+  const webhook = {
+    ID: 7,
+    Url: "https://example.com/postmark",
+    MessageStream: "outbound",
+    Status: "verified",
+    Triggers: { Delivery: { Enabled: true } },
+  };
+  const calls: string[] = [];
+  context.mock.method(globalThis, "fetch", async (...[url, init]: Parameters<typeof fetch>) => {
+    const href = typeof url === "string" ? url : url instanceof URL ? url.href : url.url;
+    const call = `${init?.method} ${href}`;
+    calls.push(call);
+    if (call === "GET https://api.postmarkapp.com/webhooks?MessageStream=outbound") {
+      return Response.json({ Webhooks: [webhook] });
+    }
+    if (call === "POST https://api.postmarkapp.com/webhooks/7/verify") {
+      return Response.json({
+        Id: 7,
+        Url: webhook.Url,
+        Success: true,
+        Results: [{ TriggerType: "Delivery", Success: true, StatusCode: 200, Message: "OK" }],
+        Message: "1/1 triggers verified successfully",
+      });
+    }
+    if (call === "DELETE https://api.postmarkapp.com/webhooks/7") {
+      return Response.json({ ErrorCode: 0, Message: "Webhook 7 removed." });
+    }
+    if (call === "GET https://api.postmarkapp.com/webhooks/7/statistics") {
+      return Response.json({
+        WebhookId: 7,
+        ServerId: 8,
+        MessageStreamId: "outbound",
+        Url: webhook.Url,
+        Statuses: { Delivery: "verified" },
+        TimeRange: { StartTime: "start", EndTime: "end", Hours: 24 },
+        Metrics: { TotalRequests: 1 },
+        MetricsByTrigger: { Delivery: { TotalRequests: 1 } },
+      });
+    }
+    return Response.json(webhook);
+  });
+
+  const provider = new PostmarkProvider("pm_test");
+  const request = {
+    Url: webhook.Url,
+    MessageStream: webhook.MessageStream,
+    Triggers: webhook.Triggers,
+    Verify: false,
+  };
+  assert.equal((await provider.listWebhooks("outbound"))[0]?.ID, 7);
+  assert.equal((await provider.getWebhook(7)).ID, 7);
+  assert.equal((await provider.createWebhook(request)).ID, 7);
+  assert.equal((await provider.updateWebhook(7, request)).ID, 7);
+  assert.equal((await provider.verifyWebhook(7)).Success, true);
+  assert.equal((await provider.deleteWebhook(7)).ErrorCode, 0);
+  assert.equal((await provider.getWebhookStatistics(7)).WebhookId, 7);
+  assert.deepEqual(calls, [
+    "GET https://api.postmarkapp.com/webhooks?MessageStream=outbound",
+    "GET https://api.postmarkapp.com/webhooks/7",
+    "POST https://api.postmarkapp.com/webhooks",
+    "PUT https://api.postmarkapp.com/webhooks/7",
+    "POST https://api.postmarkapp.com/webhooks/7/verify",
+    "DELETE https://api.postmarkapp.com/webhooks/7",
+    "GET https://api.postmarkapp.com/webhooks/7/statistics",
+  ]);
+});
