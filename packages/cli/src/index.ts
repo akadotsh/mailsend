@@ -10,6 +10,7 @@ import {
   EmailClient,
   MailerSendProvider,
   parseBulkRecipients,
+  PostmarkProvider,
   ResendProvider,
   sendBulkEmails,
   SmtpProvider,
@@ -109,6 +110,8 @@ async function createEmailProvider(provider: SupportedProvider): Promise<EmailPr
       return new CloudflareProvider(await getProviderApiKey(provider));
     case "mailersend":
       return new MailerSendProvider(await getProviderApiKey(provider));
+    case "postmark":
+      return new PostmarkProvider(await getProviderApiKey(provider));
     case "resend":
       return new ResendProvider(await getProviderApiKey(provider));
     case "smtp":

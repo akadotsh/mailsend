@@ -2,7 +2,13 @@ import { setTimeout as wait } from "node:timers/promises";
 
 import type { EmailMessage, SendResult } from "./types.js";
 
-export const SUPPORTED_PROVIDERS = ["cloudflare", "mailersend", "resend", "smtp"] as const;
+export const SUPPORTED_PROVIDERS = [
+  "cloudflare",
+  "mailersend",
+  "postmark",
+  "resend",
+  "smtp",
+] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
 export interface EmailProvider {
