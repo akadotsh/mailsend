@@ -93,6 +93,9 @@ Save a Postmark server token in the operating system's keychain:
 mailsend --config --provider postmark --api-key your_postmark_server_token
 ```
 
+The SDK's `PostmarkProvider` also supports templates, native batch sending, tracking options, and
+webhook management. The CLI uses the common single-message and CSV bulk interfaces.
+
 ### Resend
 
 Save a Resend API key in the operating system's keychain:

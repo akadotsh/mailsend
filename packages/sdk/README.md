@@ -48,3 +48,28 @@ Pass `{ error: new Error("unavailable") }` to test failure handling. Call `reset
 when reusing the same provider.
 
 Requires Node.js 20 or later.
+
+## Postmark features
+
+`PostmarkProvider` supports per-message open and link tracking, tags, metadata, custom headers,
+message streams, and inline attachments. It also exposes Postmark's template and native batch APIs:
+
+```ts
+const postmark = new PostmarkProvider(process.env.POSTMARK_SERVER_TOKEN!);
+
+await postmark.sendWithTemplate({
+  from: "hello@example.com",
+  to: "user@example.com",
+  templateAlias: "welcome",
+  templateModel: { name: "Ada" },
+  trackOpens: true,
+});
+
+await postmark.sendBatch(messages);
+await postmark.sendBatchWithTemplates(templateMessages);
+```
+
+Webhook management is available through `listWebhooks`, `getWebhook`, `createWebhook`,
+`updateWebhook`, `verifyWebhook`, `deleteWebhook`, and `getWebhookStatistics`. Postmark does not
+provide HMAC webhook signatures; protect receivers with HTTP Basic Authentication and Postmark IP
+allowlisting.
