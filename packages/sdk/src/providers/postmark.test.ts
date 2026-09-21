@@ -4,7 +4,8 @@ import test from "node:test";
 import { PostmarkProvider } from "./postmark.js";
 
 void test("sends email through the Postmark API", async (context) => {
-  context.mock.method(globalThis, "fetch", async (...[_url, init]: Parameters<typeof fetch>) => {
+  context.mock.method(globalThis, "fetch", async (...[url, init]: Parameters<typeof fetch>) => {
+    assert.equal(url, "https://api.postmarkapp.com/email");
     assert.equal(
       init?.headers && new Headers(init.headers).get("X-Postmark-Server-Token"),
       "pm_test",
@@ -58,4 +59,32 @@ void test("sends email through the Postmark API", async (context) => {
   });
 
   assert.deepEqual(result, { id: "message-1", provider: "postmark" });
+});
+
+void test("sends email with a Postmark template", async (context) => {
+  context.mock.method(globalThis, "fetch", async (...[url, init]: Parameters<typeof fetch>) => {
+    assert.equal(url, "https://api.postmarkapp.com/email/withTemplate");
+    const body = init?.body;
+    assert.ok(typeof body === "string");
+    assert.deepEqual(JSON.parse(body), {
+      From: "sender@example.com",
+      To: "recipient@example.com",
+      MessageStream: "outbound",
+      TemplateAlias: "welcome",
+      TemplateModel: { name: "Ada" },
+      InlineCss: true,
+    });
+    return Response.json({ ErrorCode: 0, Message: "OK", MessageID: "template-1" });
+  });
+
+  const result = await new PostmarkProvider("pm_test").sendWithTemplate({
+    from: "sender@example.com",
+    to: "recipient@example.com",
+    templateAlias: "welcome",
+    templateModel: { name: "Ada" },
+    messageStream: "outbound",
+    inlineCss: true,
+  });
+
+  assert.deepEqual(result, { id: "template-1", provider: "postmark" });
 });

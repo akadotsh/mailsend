@@ -12,6 +12,7 @@ export { PostmarkProvider } from "./providers/postmark.js";
 export type {
   PostmarkAttachment,
   PostmarkEmailMessage,
+  PostmarkTemplateMessage,
   PostmarkTrackLinks,
 } from "./providers/postmark.js";
 export { ResendProvider } from "./providers/resend.js";
