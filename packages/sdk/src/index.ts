@@ -9,6 +9,11 @@ export { MailerSendProvider } from "./providers/mailersend.js";
 export { MockProvider } from "./providers/mock.js";
 export type { MockProviderOptions } from "./providers/mock.js";
 export { PostmarkProvider } from "./providers/postmark.js";
+export type {
+  PostmarkAttachment,
+  PostmarkEmailMessage,
+  PostmarkTrackLinks,
+} from "./providers/postmark.js";
 export { ResendProvider } from "./providers/resend.js";
 export { SmtpProvider } from "./providers/smtp.js";
 export type { EmailAttachment, EmailMessage, SendResult, SmtpConfig } from "./types.js";

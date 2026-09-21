@@ -17,11 +17,18 @@ void test("sends email through the Postmark API", async (context) => {
       Subject: "Hello",
       HtmlBody: "<p>Hello</p>",
       ReplyTo: "reply@example.com",
+      Tag: "welcome",
+      Headers: [{ Name: "X-Campaign", Value: "onboarding" }],
+      TrackOpens: true,
+      TrackLinks: "HtmlOnly",
+      Metadata: { customer: "123" },
+      MessageStream: "outbound",
       Attachments: [
         {
           Name: "hello.txt",
           Content: "aGVsbG8=",
-          ContentType: "application/octet-stream",
+          ContentType: "text/plain",
+          ContentID: "hello",
         },
       ],
     });
@@ -34,7 +41,20 @@ void test("sends email through the Postmark API", async (context) => {
     subject: "Hello",
     html: "<p>Hello</p>",
     replyTo: "reply@example.com",
-    attachments: [{ filename: "hello.txt", content: Buffer.from("hello") }],
+    tag: "welcome",
+    headers: { "X-Campaign": "onboarding" },
+    trackOpens: true,
+    trackLinks: "HtmlOnly",
+    metadata: { customer: "123" },
+    messageStream: "outbound",
+    attachments: [
+      {
+        filename: "hello.txt",
+        content: Buffer.from("hello"),
+        contentType: "text/plain",
+        contentId: "hello",
+      },
+    ],
   });
 
   assert.deepEqual(result, { id: "message-1", provider: "postmark" });
